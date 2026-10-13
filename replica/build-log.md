@@ -166,3 +166,21 @@ MacBook on macOS 27.0.1, Apple silicon.
   (System label wrapping).
 - Feature gaps spotted (not design): Stopwatch / Pomodoro, disk and battery
   stats, a Home tab, lyrics, AI cost totals. Listed in components.md.
+
+## Taste pass (2026-10-13)
+
+- User feedback: centre things; System and Keep Awake felt left-heavy;
+  Calendar should always show the whole month with the day's events
+  beside it; Weather needed visual polish. Asked for the taste skill
+  (Leonxlnx/taste-skill, MIT), installed locally. Its scripts measure web
+  pages in a browser, so it was applied by its "single component" rule:
+  house rules + laws, judged on rendered snapshots.
+- Applied: tone steps instead of outlines (cards, chips, round buttons),
+  sentence-case labels, one dominant thing per screen at large size.
+- System: three large readouts on one card, centred. Keep Awake: one
+  centred column, toggle chip for the display. Calendar: month grid
+  (MonthGrid in NotchCore, tested) + chosen day's agenda. Weather: big
+  "now" column + 7-day field (forecast_days 7).
+- Critique round 1 found: empty agenda (scroll view), dot over today's
+  number, dead space in Weather, checkbox not matching. Fixed; round 2
+  renders clean.
