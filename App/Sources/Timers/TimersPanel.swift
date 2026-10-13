@@ -323,6 +323,53 @@ struct CompactTimerActivity: View {
     }
 }
 
+/// The closed notch during a focus session or break.
+struct CompactPomodoroActivity: View {
+    @ObservedObject var timers: TimerService
+    let notchWidth: CGFloat
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            let pomodoro = timers.pomodoro
+            HStack(spacing: 0) {
+                ProgressRing(
+                    fraction: pomodoro.progress(at: context.date),
+                    symbol: pomodoro.phase.isBreak ? "cup.and.saucer.fill" : "brain.head.profile",
+                    tint: pomodoro.phase.isBreak ? NotchStyle.Palette.gain : NotchStyle.Palette.accent
+                )
+                Spacer(minLength: notchWidth)
+                Text(CountdownFormatter.string(from: pomodoro.remaining(at: context.date)))
+                    .font(NotchStyle.Font.compactValue)
+                    .foregroundStyle(NotchStyle.Palette.primaryText)
+            }
+        }
+        .padding(.horizontal, NotchStyle.Space.l)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// The closed notch while the stopwatch runs: whole seconds only.
+struct CompactStopwatchActivity: View {
+    @ObservedObject var timers: TimerService
+    let notchWidth: CGFloat
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            HStack(spacing: 0) {
+                Image(systemName: "stopwatch.fill")
+                    .font(NotchStyle.Font.compactIcon)
+                    .foregroundStyle(NotchStyle.Palette.accent)
+                Spacer(minLength: notchWidth)
+                Text(CountdownFormatter.string(from: timers.stopwatch.elapsed(at: context.date).rounded(.down)))
+                    .font(NotchStyle.Font.compactValue)
+                    .foregroundStyle(NotchStyle.Palette.primaryText)
+            }
+        }
+        .padding(.horizontal, NotchStyle.Space.l)
+        .accessibilityElement(children: .combine)
+    }
+}
+
 /// A small ring that fills clockwise, with a symbol in the middle.
 struct ProgressRing: View {
     let fraction: Double
