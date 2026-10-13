@@ -184,3 +184,8 @@ MacBook on macOS 27.0.1, Apple silicon.
 - Critique round 1 found: empty agenda (scroll view), dot over today's
   number, dead space in Weather, checkbox not matching. Fixed; round 2
   renders clean.
+- **Pass 2, remaining tools:** Shelf, Clipboard, To-dos, Notes, Reminders,
+  Ask, AI Usage, Teleprompter, Mirror, Emoji, Stocks, Revenue. Every panel
+  layout now takes plain values (`…Content` views), so all of them render
+  in snapshots with sample data. Critique found the emoji grid overflowing
+  its preview and AI Usage 3 pt too tall; both fixed.

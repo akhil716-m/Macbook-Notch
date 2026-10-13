@@ -84,7 +84,10 @@ struct EmojiContent: View {
                     .foregroundStyle(NotchStyle.Palette.secondaryText)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if isSnapshot {
-                grid.frame(maxHeight: .infinity, alignment: .top).clipped()
+                // Without a scroll view the grid would push the panel taller.
+                Color.clear
+                    .overlay(alignment: .top) { grid }
+                    .clipped()
             } else {
                 ScrollView(.vertical, showsIndicators: false) { grid }
             }

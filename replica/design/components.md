@@ -139,6 +139,52 @@ Text levels
   tertiary  white 56%        times, hints, footnotes
 ```
 
+## Lists and inputs (taste pass 2)
+
+```
+Hover row (Clipboard, To-dos, Reminders, Stocks, Revenue sources)
+  layout    sits straight on the panel; padding 6 x 5; radius 10
+  states    hover: surface fill; pressed/selected per tool
+  scrolling short lists render without a scroller (Clipboard 4, To-dos and
+            Reminders 5, Stocks 5); longer ones scroll lazily
+
+Count summary (CountSummary)            Components.swift
+  layout    132 pt column: number (52 light, tracking -1) / what it counts
+            (15/600 secondary) / detail (11; danger when overdue) / footer chip
+  used on   To-dos ("3 things to do", "1 done", Clear done),
+            Reminders ("4 reminders", "1 overdue", Open Reminders)
+
+Text field (NotchTextField)             Components.swift
+  size      height 32, radius 10, surface fill, leading symbol 11 tertiary
+  used on   To-dos, Reminders, Ask, Emoji search
+
+Shelf tile
+  size      92 wide, icon 52, name 11 (two lines, middle truncation), surface fill
+  states    hover: selection fill; ⌥ shows a remove button; drag-over fills the
+            whole shelf (selection) instead of a dashed outline
+  empty     one large surface field: symbol 30, "Drop files here", retention
+
+Chat (AskContent)
+  empty     "What can I help with?" (26/600) + one line on privacy, left-aligned
+  bubbles   yours: raised (white 24%), right; answers: surface, left; radius 12
+  input     text field + round 32 pt buttons: new chat (secondary), send
+            (primary when there is text, secondary otherwise)
+
+Usage card (AIUsageContent)
+  layout    only tools that were found; title with symbol; one big number
+            (36) or limit meters ("5-hour limit … 61% used"); missing tools in
+            one footnote line
+
+Script (Teleprompter)
+  layout    centred text at the reading size, 28 pt fades top and bottom;
+            controls centred: edit (32), play (40, primary), restart (32),
+            speed slider with tortoise/hare, text size
+
+Quote row (Stocks)
+  layout    symbol 15/600 | price 15/600 | change badge 72 x 24, radius 8,
+            green or red fill with black text (10.4:1 and 5.6:1)
+```
+
 ## Closed-notch activities
 
 ```

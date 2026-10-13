@@ -105,7 +105,7 @@ private struct UsageCard<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
+        VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
             Label(title, systemImage: symbol)
                 .font(NotchStyle.Font.title)
                 .foregroundStyle(NotchStyle.Palette.primaryText)
