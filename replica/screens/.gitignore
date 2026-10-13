@@ -1,0 +1,7 @@
+# Reference screenshots of the original app are kept locally for measuring only.
+# They are not ours to redistribute, so they are never committed.
+*.png
+*.jpg
+*.webp
+*.mov
+*.mp4
