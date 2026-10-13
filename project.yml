@@ -1,0 +1,48 @@
+# XcodeGen spec. Run `xcodegen generate` to create MacbookNotch.xcodeproj.
+name: MacbookNotch
+options:
+  bundleIdPrefix: app.macbooknotch
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+packages:
+  NotchCore:
+    path: Packages/NotchCore
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  MacbookNotch:
+    type: application
+    platform: macOS
+    sources:
+      - App/Sources
+    dependencies:
+      - package: NotchCore
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: MacbookNotch
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        LSApplicationCategoryType: public.app-category.productivity
+        # No Dock icon: the app lives in the notch and the menu bar.
+        LSUIElement: true
+        NSAppleEventsUsageDescription: MacbookNotch reads what's playing in Music and Spotify and controls playback from the notch.
+        NSHumanReadableCopyright: ""
+    entitlements:
+      path: App/MacbookNotch.entitlements
+      properties:
+        # Needed under the hardened runtime to send Apple Events to Music and Spotify.
+        com.apple.security.automation.apple-events: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.macbooknotch.MacbookNotch
+        ENABLE_HARDENED_RUNTIME: YES
+        # Ad-hoc "Sign to Run Locally" by default. Set your team in Xcode to sign properly.
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
+    scheme: {}
