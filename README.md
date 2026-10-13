@@ -90,9 +90,15 @@ You'll also need an Apple Developer account to sign and notarise the app.
 1. Open the repo's **Actions** tab, pick the latest green **CI** run, and
    download the `MacbookNotch-…` artifact.
 2. Unzip it and move `MacbookNotch.app` to `/Applications`.
-3. The build is ad-hoc signed, not notarised, so macOS will block the first
-   launch. Either right-click the app › **Open** › **Open**, or run:
-   `xattr -dr com.apple.quarantine /Applications/MacbookNotch.app`
+3. The build isn't signed with an Apple Developer certificate, so macOS says
+   *"MacbookNotch" Not Opened*. Click **Done** (not Move to Bin), then either:
+   - open **System Settings › Privacy & Security**, scroll to **Security**,
+     click **Open Anyway** next to MacbookNotch, and confirm; or
+   - run `xattr -dr com.apple.quarantine /Applications/MacbookNotch.app`
+     in Terminal and open the app again.
+
+   (Right-click › Open no longer skips this check on macOS 15 and later.)
+   This goes away once the app is signed and notarised with a Developer ID.
 
 ### Option B: build it yourself
 
