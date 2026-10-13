@@ -1,0 +1,35 @@
+feature,area,priority,original,clone,notes
+Notch-shaped panel over the hardware notch,shell,must,yes,no,borderless always-on-top window above the menu bar
+Hover to expand / leave to collapse with spring animation,shell,must,yes,no,click to open too (SaaSCity)
+Floating notch on Macs without a notch and on external displays,shell,must,yes,no,
+Live compact activity in the closed notch,shell,must,yes,no,music / timer / shelf badge; exact look not seen
+Tool switcher inside the expanded panel,shell,must,yes,no,layout not seen
+Settings window (enable and reorder tools; hover behaviour; launch at login),shell,must,yes,no,contents not seen
+Menu bar / app lifecycle (no Dock icon; launch at login),shell,must,yes,no,guess
+Now Playing with album art scrubbing and controls,media,must,yes,no,needs a deliberate Now Playing API choice
+File shelf: drag files onto the notch,files,must,yes,no,NotchDrop baseline
+AirDrop from the shelf,files,must,yes,no,
+Shelf retention window (default 1 day; configurable) and ⌥-click delete,files,must,yes,no,NotchDrop baseline
+Clipboard history newest-first with click to re-copy and ⌥-delete,clipboard,must,yes,no,
+Skip password-manager clips (concealed pasteboard types),clipboard,must,yes,no,
+Licence key activation (3 Macs; works offline after activation),licensing,should,yes,no,original uses Dodo Payments
+Ask Omni on-device chat (Apple FoundationModels),ai,should,yes,no,macOS 26 + Apple silicon only; degrade elsewhere
+Live AI CLI usage: Claude / Codex / Copilot,ai,should,yes,no,reads local CLI tokens on-device
+Timers with live countdown in the notch,productivity,should,yes,no,Pomodoro named in one extract only
+Calendar: today's events (EventKit),productivity,should,yes,no,
+Reminders (EventKit),productivity,should,yes,no,
+To-do list,productivity,should,yes,no,
+Quick notes,productivity,should,yes,no,
+System stats: CPU / memory / network,system,should,yes,no,
+Keep Awake toggle,system,should,yes,no,IOKit power assertion
+Weather,info,should,yes,no,needs a weather source (WeatherKit or open API)
+Volume HUD in the notch,system,should,yes,no,replaces system HUD; needs media-key handling
+Stocks ticker watchlist,info,could,yes,no,needs a quotes source
+Today's revenue: Stripe / Shopify / Lemon Squeezy / Gumroad / Dodo / Polar / Paddle,founder,could,yes,no,user's own API keys in Keychain
+AI usage for Cursor and Grok,ai,could,yes,no,one listing only
+Teleprompter,creator,could,yes,no,
+Quick Mirror (camera preview),creator,could,yes,no,
+Emoji picker,utilities,could,yes,no,
+Unit and currency converter,utilities,could,yes,no,currency needs a rates source
+Run Apple Shortcuts from the notch,utilities,could,unknown,skip,named in one search summary only; confirm before building
+OmniNotch name / Ask Omni name / logo / copy,brand,could,yes,skip,trademark and assets belong to OmniNotch; we rebrand
