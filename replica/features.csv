@@ -16,13 +16,13 @@ Licence key activation (3 Macs; works offline after activation),licensing,should
 Ask Omni on-device chat (Apple FoundationModels),ai,should,yes,no,macOS 26 + Apple silicon only; degrade elsewhere
 Live AI CLI usage: Claude / Codex / Copilot,ai,should,yes,no,reads local CLI tokens on-device
 Timers with live countdown in the notch,productivity,should,yes,partial,"Pomodoro named in one extract only; M2: presets 1-45 min, pause/resume/restart, live countdown + Done in the closed notch, chime + notification"
-Calendar: today's events (EventKit),productivity,should,yes,no,
-Reminders (EventKit),productivity,should,yes,no,
+Calendar: today's events (EventKit),productivity,should,yes,partial,"M2b: today + tomorrow, calendar colours, Now badge, Join for Zoom/Meet/Teams links, opens in Calendar"
+Reminders (EventKit),productivity,should,yes,partial,"M2b: open reminders by urgency, tick to complete, add to default list"
 To-do list,productivity,should,yes,partial,"M2: add, tick, clear done, ⌥ delete"
 Quick notes,productivity,should,yes,partial,"M2: one scratchpad, autosaved"
 System stats: CPU / memory / network,system,should,yes,partial,"M2: CPU with sparkline, memory, Wi-Fi/Ethernet rates; samples only while visible"
 Keep Awake toggle,system,should,yes,partial,"IOKit power assertion; M2: on/off, 30m-4h, keep display on option, shows in closed notch"
-Weather,info,should,yes,no,needs a weather source (WeatherKit or open API)
+Weather,info,should,yes,partial,"needs a weather source (WeatherKit or open API); M2b: Open-Meteo stand-in (non-commercial tier): now + 4 days, city search or current location; swap to WeatherKit before selling"
 Volume HUD in the notch,system,should,yes,no,replaces system HUD; needs media-key handling
 Stocks ticker watchlist,info,could,yes,no,needs a quotes source
 Today's revenue: Stripe / Shopify / Lemon Squeezy / Gumroad / Dodo / Polar / Paddle,founder,could,yes,no,user's own API keys in Keychain

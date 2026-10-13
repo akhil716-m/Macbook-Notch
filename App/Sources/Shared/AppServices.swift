@@ -1,4 +1,5 @@
 import AppKit
+import EventKit
 import NotchCore
 
 /// One instance of every service, shared by all notch windows and Settings.
@@ -14,6 +15,9 @@ final class AppServices {
     let systemStats: SystemStatsService
     let notes: NotesService
     let todos: TodoService
+    let calendar: CalendarService
+    let reminders: RemindersService
+    let weather: WeatherService
     private var settingsWindow: SettingsWindowController?
 
     init() {
@@ -35,6 +39,11 @@ final class AppServices {
         systemStats = SystemStatsService()
         notes = NotesService(fileURL: support.appendingPathComponent("notes.json"))
         todos = TodoService(fileURL: support.appendingPathComponent("todos.json"))
+        // One EventKit store for both calendars and reminders.
+        let eventStore = EKEventStore()
+        calendar = CalendarService(store: eventStore)
+        reminders = RemindersService(store: eventStore)
+        weather = WeatherService(settings: settings, cacheURL: support.appendingPathComponent("weather.json"))
     }
 
     func start() {
@@ -44,6 +53,9 @@ final class AppServices {
         timers.start()
         notes.start()
         todos.start()
+        calendar.start()
+        reminders.start()
+        weather.start()
     }
 
     func openSettings() {

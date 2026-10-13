@@ -90,6 +90,12 @@ struct NotchRootView: View {
             SystemStatsPanel(stats: services.systemStats)
         case .keepAwake:
             KeepAwakePanel(keepAwake: services.keepAwake, settings: settings)
+        case .calendar:
+            CalendarPanel(calendar: services.calendar)
+        case .reminders:
+            RemindersPanel(reminders: services.reminders)
+        case .weather:
+            WeatherPanel(weather: services.weather, settings: settings)
         }
     }
 

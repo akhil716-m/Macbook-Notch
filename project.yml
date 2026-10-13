@@ -32,12 +32,22 @@ targets:
         # No Dock icon: the app lives in the notch and the menu bar.
         LSUIElement: true
         NSAppleEventsUsageDescription: MacbookNotch reads what's playing in Music and Spotify and controls playback from the notch.
+        NSCalendarsFullAccessUsageDescription: MacbookNotch shows today's and tomorrow's events in the notch. Nothing leaves your Mac.
+        NSCalendarsUsageDescription: MacbookNotch shows today's and tomorrow's events in the notch. Nothing leaves your Mac.
+        NSRemindersFullAccessUsageDescription: MacbookNotch lists your reminders in the notch and lets you tick them off.
+        NSRemindersUsageDescription: MacbookNotch lists your reminders in the notch and lets you tick them off.
+        NSLocationWhenInUseUsageDescription: MacbookNotch uses your approximate location to show local weather.
+        NSLocationUsageDescription: MacbookNotch uses your approximate location to show local weather.
         NSHumanReadableCopyright: ""
     entitlements:
       path: App/MacbookNotch.entitlements
       properties:
         # Needed under the hardened runtime to send Apple Events to Music and Spotify.
         com.apple.security.automation.apple-events: true
+        # Needed under the hardened runtime for EventKit (Calendar and Reminders).
+        com.apple.security.personal-information.calendars: true
+        # Needed under the hardened runtime for "Use My Location" in Weather.
+        com.apple.security.personal-information.location: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.macbooknotch.MacbookNotch

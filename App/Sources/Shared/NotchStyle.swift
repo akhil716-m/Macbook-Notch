@@ -49,6 +49,8 @@ enum NotchStyle {
         static let removeBackground = Color.gray
         /// Running timers, Keep Awake, meters.
         static let accent = Color.orange
+        static let overdue = Color(red: 1, green: 0.45, blue: 0.4)
+        static let live = Color.green
     }
 
     // MARK: Type
@@ -77,6 +79,18 @@ enum NotchStyle {
     enum Row {
         static let iconSize: CGFloat = 11
         static let iconHit: CGFloat = 24
+    }
+
+    enum Agenda {
+        static let colorBarWidth: CGFloat = 3
+        static let timeColumn: CGFloat = 52
+    }
+
+    enum Weather {
+        static let symbolSize: CGFloat = 34
+        static let temperature = SwiftUI.Font.system(size: 32, weight: .light).monospacedDigit()
+        static let daySymbolSize: CGFloat = 14
+        static let dayColumn: CGFloat = 46
     }
 
     enum KeepAwake {

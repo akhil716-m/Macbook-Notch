@@ -19,6 +19,8 @@ final class AppSettings: ObservableObject {
         static let clipboardLimit = "clipboard.limit"
         static let ignoredApps = "clipboard.ignoredApps"
         static let keepAwakeDisplayOn = "keepAwake.displayOn"
+        static let temperatureUnit = "weather.unit"
+        static let weatherLocation = "weather.location"
     }
 
     static let openDelayRange: ClosedRange<Double> = 0...0.6
@@ -70,6 +72,21 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(keepAwakeDisplayOn, forKey: Key.keepAwakeDisplayOn) }
     }
 
+    @Published var temperatureUnit: TemperatureUnit {
+        didSet { defaults.set(temperatureUnit.rawValue, forKey: Key.temperatureUnit) }
+    }
+
+    /// The place the Weather tool shows. Nil until the user picks one.
+    @Published var weatherLocation: WeatherLocation? {
+        didSet {
+            if let weatherLocation, let data = try? JSONEncoder().encode(weatherLocation) {
+                defaults.set(data, forKey: Key.weatherLocation)
+            } else {
+                defaults.removeObject(forKey: Key.weatherLocation)
+            }
+        }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         displayMode = defaults.string(forKey: Key.displayMode).flatMap(DisplayMode.init(rawValue:)) ?? .automatic
@@ -85,6 +102,10 @@ final class AppSettings: ObservableObject {
         clipboardLimit = ClipboardHistory.limitOptions.contains(storedLimit) ? storedLimit : ClipboardHistory.defaultLimit
         ignoredApps = defaults.stringArray(forKey: Key.ignoredApps) ?? PasteboardFilter.defaultIgnoredApps
         keepAwakeDisplayOn = defaults.object(forKey: Key.keepAwakeDisplayOn) as? Bool ?? true
+        temperatureUnit = defaults.string(forKey: Key.temperatureUnit).flatMap(TemperatureUnit.init(rawValue:))
+            ?? TemperatureUnit.preferred(usesMetric: Locale.current.measurementSystem != .us)
+        weatherLocation = defaults.data(forKey: Key.weatherLocation)
+            .flatMap { try? JSONDecoder().decode(WeatherLocation.self, from: $0) }
     }
 
     func setTool(_ tool: NotchTool, enabled: Bool) {

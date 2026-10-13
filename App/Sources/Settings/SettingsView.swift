@@ -47,6 +47,18 @@ private struct GeneralSettings: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section("Weather") {
+                Picker("Temperature", selection: $settings.temperatureUnit) {
+                    ForEach(TemperatureUnit.allCases) { unit in
+                        Text("\(unit.title) (\(unit.symbol))").tag(unit)
+                    }
+                }
+                LabeledContent("Place", value: settings.weatherLocation?.fullName ?? "Not set")
+                if settings.weatherLocation != nil {
+                    Button("Forget Place") { settings.weatherLocation = nil }
+                }
+            }
+
             Section("Hover") {
                 LabeledContent("Open after") {
                     HStack {

@@ -60,3 +60,15 @@ Needs checking on a real Mac:
   stay open while a text field has focus, close on Escape, and hand the
   keyboard back to the app you were in.
 - The timer notification permission prompt appears the first time a timer starts.
+
+## Milestone 2b: Apple data
+
+| ID | date | status | missing | harder than expected |
+| --- | --- | --- | --- | --- |
+| S10 Calendar | 2026-10-13 | partial | no "up next" live activity in the closed notch yet | the hardened runtime needs the calendars entitlement as well as the usage strings |
+| S11 Reminders | 2026-10-13 | partial | no due dates when adding; one default list | EventKit returns reminders on a background queue, so they're copied into plain values there |
+| S14 Weather | 2026-10-13 | partial | **Open-Meteo is a stand-in**: its free tier is non-commercial. Before selling, switch to WeatherKit (needs the paid Apple Developer Program) or Open-Meteo's commercial plan | — |
+
+Privacy note: Weather is the first tool that talks to a server. It sends the
+chosen place's coordinates (rounded to about 10 m) to Open-Meteo, and city
+searches to its geocoding API. Nothing else leaves the Mac.

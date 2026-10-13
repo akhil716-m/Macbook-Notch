@@ -1,3 +1,5 @@
+import AppKit
+import NotchCore
 import SwiftUI
 
 /// A small capsule button for quick choices (timer lengths, durations).
@@ -101,5 +103,50 @@ struct EmptyToolState: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// Asks for a macOS permission, or explains how to turn it back on.
+struct PermissionPrompt: View {
+    let symbol: String
+    let title: String
+    let message: String
+    let buttonTitle: String
+    let action: () -> Void
+
+    var body: some View {
+        VStack(spacing: NotchStyle.Space.s) {
+            Image(systemName: symbol)
+                .font(.system(size: NotchStyle.Controls.playSize))
+                .foregroundStyle(NotchStyle.Palette.secondaryText)
+            Text(title)
+                .font(NotchStyle.Font.emptyTitle)
+                .foregroundStyle(NotchStyle.Palette.primaryText)
+            Text(message)
+                .font(NotchStyle.Font.emptyBody)
+                .foregroundStyle(NotchStyle.Palette.secondaryText)
+                .multilineTextAlignment(.center)
+            Button(buttonTitle, action: action)
+                .buttonStyle(ChipButtonStyle(isProminent: true))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+enum SystemSettingsLink {
+    static func open(_ pane: String) {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+}
+
+extension Color {
+    init(_ rgb: RGBColor?, fallback: Color) {
+        if let rgb {
+            self.init(.sRGB, red: rgb.red, green: rgb.green, blue: rgb.blue, opacity: 1)
+        } else {
+            self = fallback
+        }
     }
 }

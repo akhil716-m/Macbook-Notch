@@ -30,6 +30,11 @@ The plan, feature list and build order are in [`replica/`](replica/):
   - **System.** CPU (with a short history), memory, and network speed.
   - **Keep Awake.** Stop the Mac sleeping until you turn it off or for
     30 min to 4 hours, optionally keeping the display on.
+  - **Calendar.** What's left of today and tomorrow, in your calendar
+    colours, with a **Join** button for Zoom / Meet / Teams links.
+  - **Reminders.** Open reminders, overdue first. Tick to complete, type to add.
+  - **Weather.** Now and the next few days, for a city you search or your
+    current location.
 - **The closed notch shows what's going on:** a timer counting down, else
   music playing, else a cup when Keep Awake is on.
 - **Typing in the notch** (Notes, To-dos) keeps it open; Escape closes it.
@@ -37,8 +42,13 @@ The plan, feature list and build order are in [`replica/`](replica/):
   open at login, displays, hover timing, tools on/off and their order, shelf
   retention, clipboard size and ignored apps.
 
-Your shelf and clipboard history are stored only on this Mac, in
-`~/Library/Application Support/MacbookNotch/`.
+Everything is stored only on this Mac, in
+`~/Library/Application Support/MacbookNotch/`. The one exception is Weather,
+which asks [Open-Meteo](https://open-meteo.com) for the forecast at the place
+you picked.
+
+macOS asks for permission the first time you open Calendar, Reminders, or
+Weather's "Use My Location".
 
 ## Run it
 
@@ -83,6 +93,8 @@ App/Sources/            the Mac app (SwiftUI views + AppKit window)
   Timers/               countdown timers
   Productivity/         to-dos, notes, Keep Awake
   SystemStats/          CPU, memory, network
+  Calendar/             calendar events and reminders (EventKit)
+  Weather/              forecast and location
   Settings/             settings window
   Shared/               settings, services, design tokens, launch at login
 Packages/NotchCore/     pure Swift logic with unit tests
