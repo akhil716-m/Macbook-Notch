@@ -23,6 +23,7 @@ final class NowPlayingService: ObservableObject {
     private var artworkKey: String?
     private var observers: [(NotificationCenter, NSObjectProtocol)] = []
     private var liveTimer: Timer?
+    private var liveRequests = 0
 
     /// How often to re-read the player while the notch is open, to catch
     /// seeks made in the player itself.
@@ -58,14 +59,18 @@ final class NowPlayingService: ObservableObject {
         refreshAll()
     }
 
-    /// Re-read the players every few seconds while the notch is open.
+    /// Re-read the players every few seconds while any notch is open. Each
+    /// open notch calls this with `true` once and `false` once.
     func setLiveUpdates(_ on: Bool) {
-        liveTimer?.invalidate()
-        liveTimer = nil
-        guard on else { return }
-        refreshAll()
-        liveTimer = Timer.scheduledTimer(withTimeInterval: Self.liveRefreshInterval, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refreshAll() }
+        liveRequests = max(0, liveRequests + (on ? 1 : -1))
+        if on { refreshAll() }
+        if liveRequests > 0, liveTimer == nil {
+            liveTimer = Timer.scheduledTimer(withTimeInterval: Self.liveRefreshInterval, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.refreshAll() }
+            }
+        } else if liveRequests == 0 {
+            liveTimer?.invalidate()
+            liveTimer = nil
         }
     }
 

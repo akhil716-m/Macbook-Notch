@@ -1,17 +1,17 @@
 feature,area,priority,original,clone,notes
 Notch-shaped panel over the hardware notch,shell,must,yes,partial,borderless always-on-top window above the menu bar; M0: built; needs a check on a real MacBook
 Hover to expand / leave to collapse with spring animation,shell,must,yes,partial,click to open too (SaaSCity); M0: hover + click to open; needs a feel pass on a real Mac
-Floating notch on Macs without a notch and on external displays,shell,must,yes,partial,M0: floating notch on the main screen only; no multi-display setting yet
+Floating notch on Macs without a notch and on external displays,shell,must,yes,partial,M0: floating notch on the main screen only; no multi-display setting yet; M1: floating notch + display setting (built-in / primary / all)
 Live compact activity in the closed notch,shell,must,yes,partial,music / timer / shelf badge; exact look not seen; M0: music only (artwork + equaliser)
-Tool switcher inside the expanded panel,shell,must,yes,no,layout not seen
-Settings window (enable and reorder tools; hover behaviour; launch at login),shell,must,yes,no,contents not seen
+Tool switcher inside the expanded panel,shell,must,yes,partial,layout not seen; M1: tabs beside the notch; settings gear on the right
+Settings window (enable and reorder tools; hover behaviour; launch at login),shell,must,yes,partial,contents not seen; M1: General / Tools / Shelf / Clipboard tabs; no full-screen setting yet
 Menu bar / app lifecycle (no Dock icon; launch at login),shell,must,yes,partial,guess; M0
 Now Playing with album art scrubbing and controls,media,must,yes,partial,needs a deliberate Now Playing API choice; M0: Music + Spotify via AppleScript; browsers not covered
-File shelf: drag files onto the notch,files,must,yes,no,NotchDrop baseline
-AirDrop from the shelf,files,must,yes,no,
-Shelf retention window (default 1 day; configurable) and ⌥-click delete,files,must,yes,no,NotchDrop baseline
-Clipboard history newest-first with click to re-copy and ⌥-delete,clipboard,must,yes,no,
-Skip password-manager clips (concealed pasteboard types),clipboard,must,yes,no,
+File shelf: drag files onto the notch,files,must,yes,partial,NotchDrop baseline; M1: drag opens the notch on the shelf; copies files (APFS clone)
+AirDrop from the shelf,files,must,yes,partial,M1: all items or one via right-click
+Shelf retention window (default 1 day; configurable) and ⌥-click delete,files,must,yes,partial,NotchDrop baseline; M1: 1h to forever; ⌥ shows remove buttons; right-click remove
+Clipboard history newest-first with click to re-copy and ⌥-delete,clipboard,must,yes,partial,M1: text / links / images / files; plain text only on re-copy
+Skip password-manager clips (concealed pasteboard types),clipboard,must,yes,partial,M1: nspasteboard.org markers + ignored apps list
 Licence key activation (3 Macs; works offline after activation),licensing,should,yes,no,original uses Dodo Payments
 Ask Omni on-device chat (Apple FoundationModels),ai,should,yes,no,macOS 26 + Apple silicon only; degrade elsewhere
 Live AI CLI usage: Claude / Codex / Copilot,ai,should,yes,no,reads local CLI tokens on-device

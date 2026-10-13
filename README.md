@@ -7,17 +7,28 @@ The plan, feature list and build order are in [`replica/`](replica/):
 `recon.md` (what we're building), `architecture.md` (how) and
 `build-log.md` (where we are).
 
-## What works now (milestone 0)
+## What works now
 
-- A black notch panel over the hardware notch. On Macs or displays without
-  a notch it draws a floating one at the top centre.
-- Hover the notch and it springs open; move away and it closes. Clicking the
-  closed notch opens it straight away.
-- **Now Playing** for Apple Music and Spotify: artwork, title, artist, a
-  draggable progress bar, and previous / play-pause / next.
-- While music plays, the closed notch shows the artwork on the left and a
-  small equaliser on the right.
-- Menu bar item with **Open at Login** and **Quit**.
+- **The notch.** A black panel over the hardware notch. Screens without one
+  get a floating notch. Choose built-in, primary or all displays in Settings.
+- **Hover to open, move away to close.** Clicking the closed notch opens it
+  straight away. Both delays can be changed in Settings.
+- **Tools.** Tabs beside the notch switch between them; the gear opens Settings.
+  - **Now Playing** for Apple Music and Spotify: artwork, title, artist,
+    a draggable progress bar, previous / play-pause / next. While music plays,
+    the closed notch shows the artwork and a small equaliser.
+  - **Shelf.** Drag files onto the notch and it opens on the shelf. Click a
+    file to open it, drag it out to use it, AirDrop one or all, and hold ⌥
+    to show remove buttons (or right-click). Files stay for 1 day by default.
+  - **Clipboard.** Everything you copy (text, links, images, files), newest
+    first. Click to copy it again, hold ⌥ to delete. Password-manager copies
+    and ignored apps are never recorded.
+- **Settings** (menu bar icon › Settings…, ⌘, or the gear in the notch):
+  open at login, displays, hover timing, tools on/off and their order, shelf
+  retention, clipboard size and ignored apps.
+
+Your shelf and clipboard history are stored only on this Mac, in
+`~/Library/Application Support/MacbookNotch/`.
 
 ## Run it
 
@@ -55,9 +66,12 @@ you rebuild. Signing with your own Apple Developer team in Xcode stops that.
 
 ```
 App/Sources/            the Mac app (SwiftUI views + AppKit window)
-  Notch/                notch window, shape, hover handling
+  Notch/                notch windows (one per screen), shape, hover, tool tabs
   NowPlaying/           Music / Spotify bridge and views
-  Shared/               design tokens, launch at login
+  Shelf/                file shelf service and view
+  Clipboard/            clipboard history service and view
+  Settings/             settings window
+  Shared/               settings, services, design tokens, launch at login
 Packages/NotchCore/     pure Swift logic with unit tests
 project.yml             XcodeGen spec (the .xcodeproj is generated, not committed)
 replica/                recon, architecture and build log

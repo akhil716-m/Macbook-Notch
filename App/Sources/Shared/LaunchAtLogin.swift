@@ -15,6 +15,11 @@ final class LaunchAtLogin: ObservableObject {
         } catch {
             NSLog("MacbookNotch: could not change login item: \(error.localizedDescription)")
         }
+        refresh()
+    }
+
+    /// The user can also change this in System Settings › General › Login Items.
+    func refresh() {
         isEnabled = SMAppService.mainApp.status == .enabled
     }
 }

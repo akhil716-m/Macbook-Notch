@@ -4,14 +4,13 @@ import SwiftUI
 @main
 struct MacbookNotchApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @StateObject private var launchAtLogin = LaunchAtLogin()
 
     var body: some Scene {
         MenuBarExtra("MacbookNotch", systemImage: "rectangle.topthird.inset.filled") {
-            Toggle("Open at Login", isOn: Binding(
-                get: { launchAtLogin.isEnabled },
-                set: { launchAtLogin.setEnabled($0) }
-            ))
+            Button("Settings…") {
+                appDelegate.openSettings()
+            }
+            .keyboardShortcut(",")
             Divider()
             Button("Quit MacbookNotch") {
                 NSApplication.shared.terminate(nil)
@@ -22,17 +21,23 @@ struct MacbookNotchApp: App {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var nowPlaying: NowPlayingService?
-    private var notch: NotchWindowController?
+    private var services: AppServices?
+    private var coordinator: NotchCoordinator?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         MainActor.assumeIsolated {
-            let nowPlaying = NowPlayingService()
-            nowPlaying.start()
-            let notch = NotchWindowController(nowPlaying: nowPlaying)
-            notch.show()
-            self.nowPlaying = nowPlaying
-            self.notch = notch
+            let services = AppServices()
+            services.start()
+            let coordinator = NotchCoordinator(services: services)
+            coordinator.start()
+            self.services = services
+            self.coordinator = coordinator
+        }
+    }
+
+    func openSettings() {
+        MainActor.assumeIsolated {
+            services?.openSettings()
         }
     }
 }

@@ -43,6 +43,10 @@ enum NotchStyle {
         static let fill = Color.white
         static let placeholder = Color.white.opacity(0.12)
         static let shadow = Color.black.opacity(0.45)
+        static let selection = Color.white.opacity(0.16)
+        static let rowBackground = Color.white.opacity(0.06)
+        static let dropOutline = Color.white.opacity(0.7)
+        static let removeBackground = Color.gray
     }
 
     // MARK: Type
@@ -52,6 +56,31 @@ enum NotchStyle {
         static let caption = SwiftUI.Font.system(size: 10).monospacedDigit()
         static let emptyTitle = SwiftUI.Font.system(size: 13, weight: .semibold)
         static let emptyBody = SwiftUI.Font.system(size: 11)
+        static let tab = SwiftUI.Font.system(size: 12, weight: .semibold)
+        static let rowTitle = SwiftUI.Font.system(size: 12)
+        static let tileName = SwiftUI.Font.system(size: 10)
+    }
+
+    // MARK: Header
+    enum Tab {
+        static let width: CGFloat = 26
+        static let height: CGFloat = 20
+    }
+
+    // MARK: Shelf
+    enum Shelf {
+        static let iconSize: CGFloat = 44
+        static let tileWidth: CGFloat = 72
+        static let removeSize: CGFloat = 14
+        static let dropRadius: CGFloat = 14
+    }
+
+    // MARK: Clipboard
+    enum Clipboard {
+        static let leadingSize: CGFloat = 26
+        static let leadingRadius: CGFloat = 6
+        static let rowRadius: CGFloat = 8
+        static let symbolSize: CGFloat = 11
     }
 
     // MARK: Media
