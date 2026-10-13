@@ -70,6 +70,7 @@ struct StatRow<Graphic: View>: View {
             Text(title)
                 .font(NotchStyle.Font.rowTitle)
                 .foregroundStyle(NotchStyle.Palette.secondaryText)
+                .lineLimit(1)
                 .frame(width: NotchStyle.StatRow.labelWidth, alignment: .leading)
             graphic()
                 .frame(maxWidth: .infinity)

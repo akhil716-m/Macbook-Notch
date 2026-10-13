@@ -170,7 +170,7 @@ enum NotchStyle {
 
     enum StatRow {
         static let iconWidth: CGFloat = 16
-        static let labelWidth: CGFloat = 64
+        static let labelWidth: CGFloat = 84
         static let valueWidth: CGFloat = 92
     }
 

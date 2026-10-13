@@ -148,3 +148,21 @@ MacBook on macOS 27.0.1, Apple silicon.
   Volume in the notch, typing in Notes with Escape to close, Calendar,
   Reminders, Weather and Mirror (each after its permission prompt).
   features.csv: 14 of 32 features now `yes`; parity 70.3 (was 53.6).
+
+## Design pass (2026-10-13)
+
+- 15 reference screenshots from the user (kept local, git-ignored) measured
+  for colour roles, type, spacing, radii and layout. Tokens in
+  `replica/design/tokens.json`, specs in `replica/design/components.md`,
+  contrast check: 20 pairs, 0 AA failures.
+- Shell: 640 x 312 pt panel; header with tool name, Pin and Settings; icon
+  tabs centred along the bottom; wider closed-notch wings with a timer
+  progress ring.
+- Shared components: card, segmented picker, round buttons, header icon
+  buttons. Applied to Converter, System, Now Playing and Timers.
+- Verification without a Mac: `--design-snapshots` renders sample panels;
+  a commit message containing `[snapshots]` makes CI commit the PNGs to
+  `replica/design/snapshots/`. First render matched the specs; one fix
+  (System label wrapping).
+- Feature gaps spotted (not design): Stopwatch / Pomodoro, disk and battery
+  stats, a Home tab, lyrics, AI cost totals. Listed in components.md.
