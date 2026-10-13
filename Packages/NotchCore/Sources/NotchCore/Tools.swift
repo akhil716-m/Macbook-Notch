@@ -20,6 +20,8 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
     case mirror
     case emoji
     case converter
+    case stocks
+    case revenue
 
     public var id: String { rawValue }
 
@@ -42,6 +44,8 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
         case .mirror: return "Mirror"
         case .emoji: return "Emoji"
         case .converter: return "Converter"
+        case .stocks: return "Stocks"
+        case .revenue: return "Revenue"
         }
     }
 
@@ -65,6 +69,8 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
         case .mirror: return "web.camera"
         case .emoji: return "face.smiling"
         case .converter: return "arrow.left.arrow.right"
+        case .stocks: return "chart.line.uptrend.xyaxis"
+        case .revenue: return "dollarsign.circle"
         }
     }
 }

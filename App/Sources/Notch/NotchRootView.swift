@@ -115,6 +115,10 @@ struct NotchRootView: View {
             EmojiPanel(settings: settings)
         case .converter:
             ConverterPanel(currency: services.currency)
+        case .stocks:
+            StocksPanel(stocks: services.stocks, settings: settings, onOpenSettings: { services.openSettings() })
+        case .revenue:
+            RevenuePanel(revenue: services.revenue, settings: settings, onOpenSettings: { services.openSettings() })
         }
     }
 

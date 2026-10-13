@@ -25,6 +25,8 @@ final class AppSettings: ObservableObject {
         static let replaceSystemVolumeHUD = "volume.replaceSystemHUD"
         static let onboardingCompleted = "onboarding.completed"
         static let recentEmoji = "emoji.recent"
+        static let stockSymbols = "stocks.symbols"
+        static let revenueSources = "revenue.sources"
     }
 
     static let openDelayRange: ClosedRange<Double> = 0...0.6
@@ -110,6 +112,20 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(recentEmoji, forKey: Key.recentEmoji) }
     }
 
+    /// Tickers for the Stocks tool.
+    @Published var stockSymbols: [String] {
+        didSet { defaults.set(stockSymbols, forKey: Key.stockSymbols) }
+    }
+
+    /// Stores connected to the Revenue tool. Their keys are in the Keychain.
+    @Published var revenueSources: [RevenueSource] {
+        didSet {
+            if let data = try? JSONEncoder().encode(revenueSources) {
+                defaults.set(data, forKey: Key.revenueSources)
+            }
+        }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         displayMode = defaults.string(forKey: Key.displayMode).flatMap(DisplayMode.init(rawValue:)) ?? .automatic
@@ -133,6 +149,9 @@ final class AppSettings: ObservableObject {
         replaceSystemVolumeHUD = defaults.bool(forKey: Key.replaceSystemVolumeHUD)
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
         recentEmoji = defaults.stringArray(forKey: Key.recentEmoji) ?? []
+        stockSymbols = defaults.stringArray(forKey: Key.stockSymbols) ?? ["AAPL", "MSFT", "NVDA"]
+        revenueSources = defaults.data(forKey: Key.revenueSources)
+            .flatMap { try? JSONDecoder().decode([RevenueSource].self, from: $0) } ?? []
     }
 
     func setTool(_ tool: NotchTool, enabled: Bool) {

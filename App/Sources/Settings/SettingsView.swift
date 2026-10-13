@@ -10,6 +10,8 @@ struct SettingsView: View {
     let clipboard: ClipboardService
     let license: LicenseService
     let updates: UpdateService
+    let stocks: StocksService
+    let revenue: RevenueService
 
     var body: some View {
         TabView {
@@ -21,10 +23,12 @@ struct SettingsView: View {
                 .tabItem { Label("Shelf", systemImage: "tray.full") }
             ClipboardSettings(settings: settings, clipboard: clipboard)
                 .tabItem { Label("Clipboard", systemImage: "doc.on.clipboard") }
+            IntegrationsSettings(settings: settings, stocks: stocks, revenue: revenue)
+                .tabItem { Label("Integrations", systemImage: "link") }
             LicenseSettings(license: license)
                 .tabItem { Label("Licence", systemImage: "key") }
         }
-        .frame(width: 480, height: 400)
+        .frame(width: 560, height: 460)
     }
 }
 

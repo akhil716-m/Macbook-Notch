@@ -24,8 +24,8 @@ System stats: CPU / memory / network,system,should,yes,partial,"M2: CPU with spa
 Keep Awake toggle,system,should,yes,partial,"IOKit power assertion; M2: on/off, 30m-4h, keep display on option, shows in closed notch"
 Weather,info,should,yes,partial,"needs a weather source (WeatherKit or open API); M2b: Open-Meteo stand-in (non-commercial tier): now + 4 days, city search or current location; swap to WeatherKit before selling"
 Volume HUD in the notch,system,should,yes,partial,replaces system HUD; needs media-key handling; M2c: shows every volume change (no permission); optional key tap hides the macOS popup (Accessibility)
-Stocks ticker watchlist,info,could,yes,no,needs a quotes source
-Today's revenue: Stripe / Shopify / Lemon Squeezy / Gumroad / Dodo / Polar / Paddle,founder,could,yes,no,user's own API keys in Keychain
+Stocks ticker watchlist,info,could,yes,partial,"needs a quotes source; M3b: Finnhub with the user's own free key (Keychain), up to 8 tickers, refreshes while visible"
+Today's revenue: Stripe / Shopify / Lemon Squeezy / Gumroad / Dodo / Polar / Paddle,founder,could,yes,partial,"user's own API keys in Keychain; M3b: all 7 with the user's own keys (Keychain), per-currency totals, never mixed. Stripe + Shopify per their docs; Lemon Squeezy, Gumroad, Paddle, Polar, Dodo need checking with a real key. First page only (100-250 orders/day)"
 AI usage for Cursor and Grok,ai,could,yes,no,one listing only
 Teleprompter,creator,could,yes,partial,"M3a: script scrolls under the camera, speed + text size, keeps the notch open while playing"
 Quick Mirror (camera preview),creator,could,yes,partial,"M3a: mirrored front camera, runs only while visible"

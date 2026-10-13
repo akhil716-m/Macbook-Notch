@@ -100,3 +100,13 @@ unlocked) and the update menu item is hidden, so test builds keep working.
 | S20 Mirror | 2026-10-13 | partial | — | needs the camera entitlement under the hardened runtime |
 | S21 Emoji | 2026-10-13 | partial | flags, skin tones and multi-person emoji (sequences, not single characters) | none: names come from Swift's built-in Unicode data, so no list ships with the app |
 | S22 Converter | 2026-10-13 | partial | maths expressions ("5 km + 300 m") | — |
+
+## Milestone 3b: could-haves with your own keys
+
+| ID | date | status | missing | harder than expected |
+| --- | --- | --- | --- | --- |
+| S15 Stocks | 2026-10-13 | partial | charts; more than 8 tickers (free-tier rate limit) | — |
+| S18 Revenue | 2026-10-13 | partial | **Lemon Squeezy, Gumroad, Paddle, Polar and Dodo are written from their public docs and need a check with a real key**; only the first page of today's orders is read | every service reports money differently (cents vs decimal strings, 0- and 3-decimal currencies), so totals are kept per currency in minor units and never added across currencies |
+
+With 23 tools, most now sit in the overflow menu. The tab bar needs a
+rethink in the design pass (favourites, or a grid home screen).

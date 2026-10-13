@@ -51,6 +51,7 @@ enum NotchStyle {
         static let accent = Color.orange
         static let overdue = Color(red: 1, green: 0.45, blue: 0.4)
         static let live = Color.green
+        static let gain = Color.green
     }
 
     // MARK: Type
@@ -107,6 +108,10 @@ enum NotchStyle {
     enum Emoji {
         static let cell: CGFloat = 30
         static let size: CGFloat = 20
+    }
+
+    enum Stocks {
+        static let cardWidth: CGFloat = 100
     }
 
     enum Converter {

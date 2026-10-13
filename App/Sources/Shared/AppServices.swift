@@ -26,6 +26,8 @@ final class AppServices {
     let teleprompter: TeleprompterService
     let camera: CameraService
     let currency: CurrencyService
+    let stocks: StocksService
+    let revenue: RevenueService
     private var onboardingWindow: OnboardingWindowController?
     private var settingsWindow: SettingsWindowController?
 
@@ -61,6 +63,8 @@ final class AppServices {
         teleprompter = TeleprompterService(fileURL: support.appendingPathComponent("teleprompter.json"))
         camera = CameraService()
         currency = CurrencyService(cacheURL: support.appendingPathComponent("rates.json"))
+        stocks = StocksService(settings: settings)
+        revenue = RevenueService(settings: settings)
     }
 
     func start() {

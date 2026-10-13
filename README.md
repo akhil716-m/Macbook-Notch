@@ -47,6 +47,10 @@ The plan, feature list and build order are in [`replica/`](replica/):
   - **Emoji.** Search by name, click to copy.
   - **Converter.** Length, weight, temperature, volume, speed, data, and
     31 currencies (European Central Bank rates via Frankfurter).
+  - **Stocks.** A small watchlist, with your own free Finnhub key.
+  - **Revenue.** Today's sales from Stripe, Shopify, Lemon Squeezy, Gumroad,
+    Paddle, Polar or Dodo, with your own read-only keys (Settings ›
+    Integrations). Keys are kept in the Keychain and sent only to that service.
 - **The closed notch shows what's going on:** the volume when it changes,
   else a timer counting down, else music playing, else a cup when Keep Awake
   is on. Hiding the macOS volume popup is optional (Settings › General, needs
@@ -57,9 +61,10 @@ The plan, feature list and build order are in [`replica/`](replica/):
   retention, clipboard size and ignored apps.
 
 Everything is stored only on this Mac, in
-`~/Library/Application Support/MacbookNotch/`. The one exception is Weather,
-which asks [Open-Meteo](https://open-meteo.com) for the forecast at the place
-you picked.
+`~/Library/Application Support/MacbookNotch/` (keys in the Keychain). The app
+goes online only for: Weather ([Open-Meteo](https://open-meteo.com)), currency
+rates ([Frankfurter](https://frankfurter.app)), and Stocks and Revenue if you
+add keys for them.
 
 macOS asks for permission the first time you open Calendar, Reminders, or
 Weather's "Use My Location".
@@ -129,6 +134,7 @@ App/Sources/            the Mac app (SwiftUI views + AppKit window)
   Licensing/            licence keys (Lemon Squeezy) and Keychain
   Onboarding/           first-run welcome window
   Utilities/            teleprompter, mirror, emoji, converter
+  Integrations/         stocks and revenue (your own API keys)
   Settings/             settings window
   Shared/               settings, services, design tokens, launch at login
 Packages/NotchCore/     pure Swift logic with unit tests
