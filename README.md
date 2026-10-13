@@ -35,8 +35,13 @@ The plan, feature list and build order are in [`replica/`](replica/):
   - **Reminders.** Open reminders, overdue first. Tick to complete, type to add.
   - **Weather.** Now and the next few days, for a city you search or your
     current location.
-- **The closed notch shows what's going on:** a timer counting down, else
-  music playing, else a cup when Keep Awake is on.
+  - **Ask.** Chat with Apple's on-device model (Apple Intelligence). Needs
+    macOS 26 on Apple silicon and a build made with Xcode 26; nothing you
+    type leaves the Mac.
+- **The closed notch shows what's going on:** the volume when it changes,
+  else a timer counting down, else music playing, else a cup when Keep Awake
+  is on. Hiding the macOS volume popup is optional (Settings › General, needs
+  Accessibility permission).
 - **Typing in the notch** (Notes, To-dos) keeps it open; Escape closes it.
 - **Settings** (menu bar icon › Settings…, ⌘, or the gear in the notch):
   open at login, displays, hover timing, tools on/off and their order, shelf
@@ -95,6 +100,8 @@ App/Sources/            the Mac app (SwiftUI views + AppKit window)
   SystemStats/          CPU, memory, network
   Calendar/             calendar events and reminders (EventKit)
   Weather/              forecast and location
+  Volume/               volume watching and the optional volume-key tap
+  Ask/                  on-device chat (FoundationModels)
   Settings/             settings window
   Shared/               settings, services, design tokens, launch at login
 Packages/NotchCore/     pure Swift logic with unit tests

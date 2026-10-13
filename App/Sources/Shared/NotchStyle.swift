@@ -93,6 +93,17 @@ enum NotchStyle {
         static let dayColumn: CGFloat = 46
     }
 
+    enum Ask {
+        static let sendSize: CGFloat = 16
+        static let bubbleInset: CGFloat = 60
+        static let bubbleRadius: CGFloat = 10
+    }
+
+    enum Volume {
+        static let iconWidth: CGFloat = 20
+        static let meterWidth: CGFloat = 28
+    }
+
     enum KeepAwake {
         static let buttonSize: CGFloat = 56
         static let symbolSize: CGFloat = 24

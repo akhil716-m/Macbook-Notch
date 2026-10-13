@@ -47,6 +47,17 @@ private struct GeneralSettings: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section {
+                Toggle("Show volume changes in the notch", isOn: $settings.showVolumeInNotch)
+                Toggle("Hide the macOS volume popup", isOn: $settings.replaceSystemVolumeHUD)
+                    .disabled(!settings.showVolumeInNotch)
+            } header: {
+                Text("Volume")
+            } footer: {
+                Text("Hiding the macOS popup needs Accessibility permission, so the notch can catch the volume keys. Turn MacbookNotch on in Privacy & Security › Accessibility, then switch this off and on again.")
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Weather") {
                 Picker("Temperature", selection: $settings.temperatureUnit) {
                     ForEach(TemperatureUnit.allCases) { unit in

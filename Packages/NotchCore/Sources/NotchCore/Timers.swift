@@ -96,13 +96,17 @@ public enum LiveActivity: Equatable, Sendable {
     case music
     case timer(id: UUID)
     case timerFinished(id: UUID)
+    /// The volume just changed; shown for a moment.
+    case volume
 
     public static func pick(
         finishedTimer: UUID?,
         runningTimer: UUID?,
         musicPlaying: Bool,
-        keepAwake: Bool
+        keepAwake: Bool,
+        volumeChanged: Bool = false
     ) -> LiveActivity {
+        if volumeChanged { return .volume }
         if let finishedTimer { return .timerFinished(id: finishedTimer) }
         if let runningTimer { return .timer(id: runningTimer) }
         if musicPlaying { return .music }

@@ -96,6 +96,8 @@ struct NotchRootView: View {
             RemindersPanel(reminders: services.reminders)
         case .weather:
             WeatherPanel(weather: services.weather, settings: settings)
+        case .ask:
+            AskPanel(ask: services.ask)
         }
     }
 
@@ -117,6 +119,8 @@ struct NotchRootView: View {
             CompactTimerActivity(timers: services.timers, timerID: id, finished: true, notchWidth: notchWidth)
         case .keepAwake:
             CompactKeepAwakeActivity(notchWidth: notchWidth)
+        case .volume:
+            CompactVolumeActivity(volume: services.volume, notchWidth: notchWidth)
         }
     }
 

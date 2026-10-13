@@ -72,3 +72,10 @@ Needs checking on a real Mac:
 Privacy note: Weather is the first tool that talks to a server. It sends the
 chosen place's coordinates (rounded to about 10 m) to Open-Meteo, and city
 searches to its geocoding API. Nothing else leaves the Mac.
+
+## Milestone 2c: volume and on-device AI
+
+| ID | date | status | missing | harder than expected |
+| --- | --- | --- | --- | --- |
+| S24 Volume HUD | 2026-10-13 | partial | no brightness HUD | showing changes needs nothing, but hiding the macOS popup means catching the volume keys with an event tap, which needs Accessibility. Ad-hoc builds lose that permission on every rebuild |
+| S05 Ask (on-device chat) | 2026-10-13 | partial | answers arrive all at once (no streaming yet); renamed from the original's "Ask Omni" | Apple's FoundationModels exists only in the macOS 26 SDK (Xcode 26), so the code is compiled only when available, and macOS 14/15 users get an explanation instead |

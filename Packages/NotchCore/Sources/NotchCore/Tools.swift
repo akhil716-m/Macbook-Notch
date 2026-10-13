@@ -14,6 +14,7 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
     case calendar
     case reminders
     case weather
+    case ask
 
     public var id: String { rawValue }
 
@@ -30,6 +31,7 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
         case .calendar: return "Calendar"
         case .reminders: return "Reminders"
         case .weather: return "Weather"
+        case .ask: return "Ask"
         }
     }
 
@@ -47,6 +49,7 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
         case .calendar: return "calendar"
         case .reminders: return "list.bullet.circle"
         case .weather: return "cloud.sun"
+        case .ask: return "sparkles"
         }
     }
 }

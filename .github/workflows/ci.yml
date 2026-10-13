@@ -16,8 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Show toolchain
+      # The newest Xcode on the runner. Xcode 26+ includes Apple's
+      # FoundationModels framework, which the Ask tool needs; older ones
+      # build the app without it.
+      - name: Use the newest Xcode
         run: |
+          ls -d /Applications/Xcode*.app
+          latest=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -v -i beta | sort -V | tail -1)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest"; fi
           xcodebuild -version
           swift --version
 

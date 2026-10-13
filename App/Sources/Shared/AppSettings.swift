@@ -21,6 +21,8 @@ final class AppSettings: ObservableObject {
         static let keepAwakeDisplayOn = "keepAwake.displayOn"
         static let temperatureUnit = "weather.unit"
         static let weatherLocation = "weather.location"
+        static let showVolumeInNotch = "volume.showInNotch"
+        static let replaceSystemVolumeHUD = "volume.replaceSystemHUD"
     }
 
     static let openDelayRange: ClosedRange<Double> = 0...0.6
@@ -87,6 +89,16 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    /// Show volume changes in the closed notch.
+    @Published var showVolumeInNotch: Bool {
+        didSet { defaults.set(showVolumeInNotch, forKey: Key.showVolumeInNotch) }
+    }
+
+    /// Catch the volume keys so the macOS popup doesn't appear (needs Accessibility).
+    @Published var replaceSystemVolumeHUD: Bool {
+        didSet { defaults.set(replaceSystemVolumeHUD, forKey: Key.replaceSystemVolumeHUD) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         displayMode = defaults.string(forKey: Key.displayMode).flatMap(DisplayMode.init(rawValue:)) ?? .automatic
@@ -106,6 +118,8 @@ final class AppSettings: ObservableObject {
             ?? TemperatureUnit.preferred(usesMetric: Locale.current.measurementSystem != .us)
         weatherLocation = defaults.data(forKey: Key.weatherLocation)
             .flatMap { try? JSONDecoder().decode(WeatherLocation.self, from: $0) }
+        showVolumeInNotch = defaults.object(forKey: Key.showVolumeInNotch) as? Bool ?? true
+        replaceSystemVolumeHUD = defaults.bool(forKey: Key.replaceSystemVolumeHUD)
     }
 
     func setTool(_ tool: NotchTool, enabled: Bool) {

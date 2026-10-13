@@ -18,6 +18,8 @@ final class AppServices {
     let calendar: CalendarService
     let reminders: RemindersService
     let weather: WeatherService
+    let volume: VolumeService
+    let ask: AskService
     private var settingsWindow: SettingsWindowController?
 
     init() {
@@ -44,6 +46,8 @@ final class AppServices {
         calendar = CalendarService(store: eventStore)
         reminders = RemindersService(store: eventStore)
         weather = WeatherService(settings: settings, cacheURL: support.appendingPathComponent("weather.json"))
+        volume = VolumeService(settings: settings)
+        ask = AskService()
     }
 
     func start() {
@@ -56,6 +60,8 @@ final class AppServices {
         calendar.start()
         reminders.start()
         weather.start()
+        volume.start()
+        ask.refreshAvailability()
     }
 
     func openSettings() {
