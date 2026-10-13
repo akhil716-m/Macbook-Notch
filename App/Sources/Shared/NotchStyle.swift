@@ -39,7 +39,7 @@ enum NotchStyle {
         static let background = Color.black
         static let primaryText = Color.white
         static let secondaryText = Color.white.opacity(0.6)
-        static let track = Color.white.opacity(0.2)
+        static let track = Color.white.opacity(0.38)
         static let fill = Color.white
         static let placeholder = Color.white.opacity(0.12)
         static let shadow = Color.black.opacity(0.45)
