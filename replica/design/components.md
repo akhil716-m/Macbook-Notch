@@ -29,7 +29,7 @@ Header (PanelHeader)
   file      NotchRootView.swift
 
 Tab bar (ToolTabBar)
-  layout    icons only, centred; items 29 x 26, gap 3, radius 8; icon 15/500
+  layout    icons only, centred; items 28 x 26, gap 2 (20 tools fit 612 pt), radius 8; icon 15/500
   states    default (secondary text), selected (white icon on selection fill),
             overflow: becomes a horizontal scroller with faded ends
   a11y      each tab is a button labelled with the tool name, .isSelected on

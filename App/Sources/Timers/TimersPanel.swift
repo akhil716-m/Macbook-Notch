@@ -144,7 +144,6 @@ struct StopwatchContent: View {
                         }
                         .font(NotchStyle.Font.body.monospacedDigit())
                     }
-                    Spacer(minLength: 0)
                 }
                 .frame(width: NotchStyle.Stopwatch.lapColumn)
                 .notchCard()

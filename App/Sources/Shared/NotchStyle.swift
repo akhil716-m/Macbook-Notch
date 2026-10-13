@@ -239,9 +239,10 @@ enum NotchStyle {
 
     // MARK: Header
     enum Tab {
-        static let width: CGFloat = 29
+        /// 20 tools at 28 + 2 fit the 612 pt row without scrolling.
+        static let width: CGFloat = 28
         static let height: CGFloat = 26
-        static let spacing: CGFloat = 3
+        static let spacing: CGFloat = 2
         static let radius: CGFloat = 8
         static let barHeight: CGFloat = 30
         /// Gap between the bar's centre and the panel's bottom edge.
