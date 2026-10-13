@@ -72,8 +72,9 @@ jobs:
           for fw in "$app"/Contents/Frameworks/*.framework; do
             [ -e "$fw" ] || continue
             echo "$(basename "$fw"): team '$(team "$fw")'"
-            if [ "$hardened" = yes ] && [ "$(team "$fw")" != "$app_team" ]; then
-              echo "::error::$(basename "$fw") is signed by a different team; the hardened runtime will refuse to load it."
+            # Ad-hoc signatures have no team, so nothing can match one.
+            if [ "$hardened" = yes ] && { [ "$app_team" = "not set" ] || [ "$(team "$fw")" != "$app_team" ]; }; then
+              echo "::error::The hardened runtime will refuse to load $(basename "$fw"): it needs the app and framework signed by the same Developer ID team."
               status=1
             fi
           done
