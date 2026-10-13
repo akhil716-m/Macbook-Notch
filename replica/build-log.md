@@ -189,3 +189,13 @@ MacBook on macOS 27.0.1, Apple silicon.
   layout now takes plain values (`…Content` views), so all of them render
   in snapshots with sample data. Critique found the emoji grid overflowing
   its preview and AI Usage 3 pt too tall; both fixed.
+
+## Features after the design pass (2026-10-13)
+
+- Home tab (new first tool, existing setups get it at the front), Stopwatch
+  and Pomodoro in Timers (both shown in the closed notch while running),
+  disk and battery in System. Logic in NotchCore with tests.
+- A missing view broke one CI build (an edit script's anchor had changed);
+  fixed within the hour. Lesson: every scripted replacement now asserts.
+- With 20 tools the tab row overflowed by a few points and scrolled; items
+  are now 28 pt with 2 pt gaps so all of them fit.

@@ -13,7 +13,11 @@ The plan, feature list and build order are in [`replica/`](replica/):
   get a floating notch. Choose built-in, primary or all displays in Settings.
 - **Hover to open, move away to close.** Clicking the closed notch opens it
   straight away. Both delays can be changed in Settings.
-- **Tools.** Tabs beside the notch switch between them; the gear opens Settings.
+- **Tools.** Icons along the bottom of the panel switch between them. The
+  header shows the tool's name, a Pin button (keep the panel open when the
+  pointer leaves) and Settings.
+  - **Home.** A greeting, what's playing, the rest of today's events and
+    your open reminders. Section titles open the full tool.
   - **Now Playing** for Apple Music and Spotify: artwork, title, artist,
     a draggable progress bar, previous / play-pause / next. While music plays,
     the closed notch shows the artwork and a small equaliser.
@@ -23,11 +27,16 @@ The plan, feature list and build order are in [`replica/`](replica/):
   - **Clipboard.** Everything you copy (text, links, images, files), newest
     first. Click to copy it again, hold ⌥ to delete. Password-manager copies
     and ignored apps are never recorded.
-  - **Timers.** One click to start 1–45 minutes (25 is "Focus"). Pause,
-    resume, restart. The closed notch counts down and says "Done" with a chime.
+  - **Timers.** Three modes:
+    - **Timer:** one click to start 1–45 minutes; pause, resume, restart.
+      The closed notch counts down and says "Done" with a chime.
+    - **Stopwatch:** hundredths and laps; keeps time across sleep.
+    - **Pomodoro:** focus sessions and breaks (a long one after four), in
+      15/3, 25/5 or 50/10 minutes, with a chime and notification at each change.
   - **To-dos.** Type, press Return, tick off. "Clear done" tidies up.
   - **Notes.** A scratchpad that saves as you type.
-  - **System.** CPU (with a short history), memory, and network speed.
+  - **System.** CPU (with a short history), memory, download and upload
+    speed, free disk space, and the battery.
   - **Keep Awake.** Stop the Mac sleeping until you turn it off or for
     30 min to 4 hours, optionally keeping the display on.
   - **Calendar.** What's left of today and tomorrow, in your calendar

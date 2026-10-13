@@ -15,12 +15,12 @@ Skip password-manager clips (concealed pasteboard types),clipboard,must,yes,part
 Licence key activation (3 Macs; works offline after activation),licensing,should,yes,partial,"original uses Dodo Payments; M2d: Lemon Squeezy License API, Keychain, weekly check, 30-day offline grace, product check; off until store/product IDs are set"
 Ask Omni on-device chat (Apple FoundationModels),ai,should,yes,partial,"macOS 26 + Apple silicon only; degrade elsewhere; M2c: 'Ask' tool, Apple FoundationModels, keeps context, new chat; explains every unavailable case; only compiled with Xcode 26+"
 Live AI CLI usage: Claude / Codex / Copilot,ai,should,yes,partial,reads local CLI tokens on-device; M2d: reads only local logs (no tokens). Claude: tokens in the current 5-hour block + reset time + 7 days. Codex: real limit % from its logs. Copilot: not available locally
-Timers with live countdown in the notch,productivity,should,yes,yes,"Pomodoro named in one extract only; M2: presets 1-45 min, pause/resume/restart, live countdown + Done in the closed notch, chime + notification; confirmed on a real Mac 2026-10-13"
+Timers with live countdown in the notch,productivity,should,yes,yes,"Pomodoro named in one extract only; M2: presets 1-45 min, pause/resume/restart, live countdown + Done in the closed notch, chime + notification; confirmed on a real Mac 2026-10-13; Stopwatch with laps and Pomodoro (sessions, breaks, daily count) added after the design pass"
 Calendar: today's events (EventKit),productivity,should,yes,yes,"M2b: today + tomorrow, calendar colours, Now badge, Join for Zoom/Meet/Teams links, opens in Calendar; confirmed on a real Mac 2026-10-13"
 Reminders (EventKit),productivity,should,yes,yes,"M2b: open reminders by urgency, tick to complete, add to default list; confirmed on a real Mac 2026-10-13"
 To-do list,productivity,should,yes,partial,"M2: add, tick, clear done, ⌥ delete"
 Quick notes,productivity,should,yes,yes,"M2: one scratchpad, autosaved; confirmed on a real Mac 2026-10-13"
-System stats: CPU / memory / network,system,should,yes,partial,"M2: CPU with sparkline, memory, Wi-Fi/Ethernet rates; samples only while visible"
+System stats: CPU / memory / network,system,should,yes,partial,"M2: CPU with sparkline, memory, Wi-Fi/Ethernet rates; samples only while visible; disk free space and battery added"
 Keep Awake toggle,system,should,yes,partial,"IOKit power assertion; M2: on/off, 30m-4h, keep display on option, shows in closed notch"
 Weather,info,should,yes,yes,"needs a weather source (WeatherKit or open API); M2b: Open-Meteo stand-in (non-commercial tier): now + 4 days, city search or current location; swap to WeatherKit before selling; confirmed on a real Mac 2026-10-13"
 Volume HUD in the notch,system,should,yes,yes,replaces system HUD; needs media-key handling; M2c: shows every volume change (no permission); optional key tap hides the macOS popup (Accessibility); confirmed on a real Mac 2026-10-13
@@ -33,3 +33,4 @@ Emoji picker,utilities,could,yes,partial,"M3a: every single-character emoji from
 Unit and currency converter,utilities,could,yes,partial,"currency needs a rates source; M3a: 6 unit families via Measurement + 31 currencies from ECB rates (Frankfurter, no key)"
 Run Apple Shortcuts from the notch,utilities,could,unknown,skip,named in one search summary only; confirm before building
 OmniNotch name / Ask Omni name / logo / copy,brand,could,yes,skip,trademark and assets belong to OmniNotch; we rebrand
+Home overview (greeting; now playing; today; reminders),shell,should,yes,partial,"seen in the original's screenshots; built after the design pass; renders checked, not yet on a real Mac"
