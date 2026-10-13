@@ -48,7 +48,43 @@ jobs:
             CODE_SIGN_IDENTITY=- \
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM= \
+            ENABLE_HARDENED_RUNTIME=NO \
             build
+
+      # Catch launch-blocking signing problems here rather than on someone's Mac.
+      - name: Check the app's signature
+        run: |
+          codesign --verify --deep --strict --verbose=2 build/Build/Products/Release/MacbookNotch.app
+          codesign -d --entitlements - build/Build/Products/Release/MacbookNotch.app
+
+      # Start the app and make sure it's still running after 10 seconds.
+      - name: Launch check
+        run: |
+          app=build/Build/Products/Release/MacbookNotch.app/Contents/MacOS/MacbookNotch
+          "$app" > launch.log 2>&1 &
+          pid=$!
+          sleep 10
+          if kill -0 "$pid" 2>/dev/null; then
+            echo "Still running after 10 s"
+            kill "$pid"
+          else
+            wait "$pid"; code=$?
+            echo "The app quit or crashed on launch (exit $code):"
+            cat launch.log
+            exit 1
+          fi
+
+      # Diagnostic: the same app re-signed ad hoc WITH the hardened runtime,
+      # which is how builds were made before this fix. Expected to fail.
+      - name: Diagnostic - hardened runtime with ad-hoc signing
+        continue-on-error: true
+        run: |
+          cp -R build/Build/Products/Release/MacbookNotch.app /tmp/Hardened.app
+          codesign --force --deep --sign - --options runtime /tmp/Hardened.app
+          /tmp/Hardened.app/Contents/MacOS/MacbookNotch > hardened.log 2>&1 &
+          pid=$!
+          sleep 10
+          if kill -0 "$pid" 2>/dev/null; then echo "Hardened copy runs"; kill "$pid"; else wait "$pid"; echo "Hardened copy exited ($?)"; cat hardened.log; exit 1; fi
 
       - name: Zip app
         run: ditto -c -k --keepParent build/Build/Products/Release/MacbookNotch.app MacbookNotch.zip
