@@ -142,3 +142,9 @@ MacBook on macOS 27.0.1, Apple silicon.
 - The user asked for the tab row at the **bottom** of the panel, like a dock,
   with the tool's content above it. Content still starts below the taller of
   the notch and the menu bar.
+- **Full test pass on the real Mac (macOS 27.0.1, MacBook Air M2): all
+  working.** Music (Music/Spotify control and the closed-notch activity),
+  Shelf drag in and out, Clipboard, Timer countdown in the closed notch,
+  Volume in the notch, typing in Notes with Escape to close, Calendar,
+  Reminders, Weather and Mirror (each after its permission prompt).
+  features.csv: 14 of 32 features now `yes`; parity 70.3 (was 53.6).

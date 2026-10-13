@@ -2,33 +2,33 @@ feature,area,priority,original,clone,notes
 Notch-shaped panel over the hardware notch,shell,must,yes,yes,"borderless always-on-top window above the menu bar; M0: built; needs a check on a real MacBook; confirmed on a real MacBook (macOS 27.0.1, Apple silicon) 2026-10-13"
 Hover to expand / leave to collapse with spring animation,shell,must,yes,yes,"click to open too (SaaSCity); M0: hover + click to open; needs a feel pass on a real Mac; confirmed on a real MacBook (macOS 27.0.1, Apple silicon) 2026-10-13"
 Floating notch on Macs without a notch and on external displays,shell,must,yes,partial,M0: floating notch on the main screen only; no multi-display setting yet; M1: floating notch + display setting (built-in / primary / all)
-Live compact activity in the closed notch,shell,must,yes,partial,music / timer / shelf badge; exact look not seen; M0: music only (artwork + equaliser); M2: timer > music > Keep Awake priority
+Live compact activity in the closed notch,shell,must,yes,yes,music / timer / shelf badge; exact look not seen; M0: music only (artwork + equaliser); M2: timer > music > Keep Awake priority; confirmed on a real Mac 2026-10-13
 Tool switcher inside the expanded panel,shell,must,yes,yes,layout not seen; tabs beside the notch were invisible on a real Mac (macOS 27); now a scrolling row along the bottom of the panel (user preference) with the tool name and settings gear on the right; confirmed on a real Mac 2026-10-13
 Settings window (enable and reorder tools; hover behaviour; launch at login),shell,must,yes,partial,contents not seen; M1: General / Tools / Shelf / Clipboard tabs; no full-screen setting yet
 Menu bar / app lifecycle (no Dock icon; launch at login),shell,must,yes,partial,guess; M0
-Now Playing with album art scrubbing and controls,media,must,yes,partial,needs a deliberate Now Playing API choice; M0: Music + Spotify via AppleScript; browsers not covered
-File shelf: drag files onto the notch,files,must,yes,partial,NotchDrop baseline; M1: drag opens the notch on the shelf; copies files (APFS clone)
+Now Playing with album art scrubbing and controls,media,must,yes,yes,needs a deliberate Now Playing API choice; M0: Music + Spotify via AppleScript; browsers not covered; confirmed on a real Mac 2026-10-13
+File shelf: drag files onto the notch,files,must,yes,yes,NotchDrop baseline; M1: drag opens the notch on the shelf; copies files (APFS clone); confirmed on a real Mac 2026-10-13
 AirDrop from the shelf,files,must,yes,partial,M1: all items or one via right-click
 Shelf retention window (default 1 day; configurable) and ⌥-click delete,files,must,yes,partial,NotchDrop baseline; M1: 1h to forever; ⌥ shows remove buttons; right-click remove
-Clipboard history newest-first with click to re-copy and ⌥-delete,clipboard,must,yes,partial,M1: text / links / images / files; plain text only on re-copy
+Clipboard history newest-first with click to re-copy and ⌥-delete,clipboard,must,yes,yes,M1: text / links / images / files; plain text only on re-copy; confirmed on a real Mac 2026-10-13
 Skip password-manager clips (concealed pasteboard types),clipboard,must,yes,partial,M1: nspasteboard.org markers + ignored apps list
 Licence key activation (3 Macs; works offline after activation),licensing,should,yes,partial,"original uses Dodo Payments; M2d: Lemon Squeezy License API, Keychain, weekly check, 30-day offline grace, product check; off until store/product IDs are set"
 Ask Omni on-device chat (Apple FoundationModels),ai,should,yes,partial,"macOS 26 + Apple silicon only; degrade elsewhere; M2c: 'Ask' tool, Apple FoundationModels, keeps context, new chat; explains every unavailable case; only compiled with Xcode 26+"
 Live AI CLI usage: Claude / Codex / Copilot,ai,should,yes,partial,reads local CLI tokens on-device; M2d: reads only local logs (no tokens). Claude: tokens in the current 5-hour block + reset time + 7 days. Codex: real limit % from its logs. Copilot: not available locally
-Timers with live countdown in the notch,productivity,should,yes,partial,"Pomodoro named in one extract only; M2: presets 1-45 min, pause/resume/restart, live countdown + Done in the closed notch, chime + notification"
-Calendar: today's events (EventKit),productivity,should,yes,partial,"M2b: today + tomorrow, calendar colours, Now badge, Join for Zoom/Meet/Teams links, opens in Calendar"
-Reminders (EventKit),productivity,should,yes,partial,"M2b: open reminders by urgency, tick to complete, add to default list"
+Timers with live countdown in the notch,productivity,should,yes,yes,"Pomodoro named in one extract only; M2: presets 1-45 min, pause/resume/restart, live countdown + Done in the closed notch, chime + notification; confirmed on a real Mac 2026-10-13"
+Calendar: today's events (EventKit),productivity,should,yes,yes,"M2b: today + tomorrow, calendar colours, Now badge, Join for Zoom/Meet/Teams links, opens in Calendar; confirmed on a real Mac 2026-10-13"
+Reminders (EventKit),productivity,should,yes,yes,"M2b: open reminders by urgency, tick to complete, add to default list; confirmed on a real Mac 2026-10-13"
 To-do list,productivity,should,yes,partial,"M2: add, tick, clear done, ⌥ delete"
-Quick notes,productivity,should,yes,partial,"M2: one scratchpad, autosaved"
+Quick notes,productivity,should,yes,yes,"M2: one scratchpad, autosaved; confirmed on a real Mac 2026-10-13"
 System stats: CPU / memory / network,system,should,yes,partial,"M2: CPU with sparkline, memory, Wi-Fi/Ethernet rates; samples only while visible"
 Keep Awake toggle,system,should,yes,partial,"IOKit power assertion; M2: on/off, 30m-4h, keep display on option, shows in closed notch"
-Weather,info,should,yes,partial,"needs a weather source (WeatherKit or open API); M2b: Open-Meteo stand-in (non-commercial tier): now + 4 days, city search or current location; swap to WeatherKit before selling"
-Volume HUD in the notch,system,should,yes,partial,replaces system HUD; needs media-key handling; M2c: shows every volume change (no permission); optional key tap hides the macOS popup (Accessibility)
+Weather,info,should,yes,yes,"needs a weather source (WeatherKit or open API); M2b: Open-Meteo stand-in (non-commercial tier): now + 4 days, city search or current location; swap to WeatherKit before selling; confirmed on a real Mac 2026-10-13"
+Volume HUD in the notch,system,should,yes,yes,replaces system HUD; needs media-key handling; M2c: shows every volume change (no permission); optional key tap hides the macOS popup (Accessibility); confirmed on a real Mac 2026-10-13
 Stocks ticker watchlist,info,could,yes,partial,"needs a quotes source; M3b: Finnhub with the user's own free key (Keychain), up to 8 tickers, refreshes while visible"
 Today's revenue: Stripe / Shopify / Lemon Squeezy / Gumroad / Dodo / Polar / Paddle,founder,could,yes,partial,"user's own API keys in Keychain; M3b: all 7 with the user's own keys (Keychain), per-currency totals, never mixed. Stripe + Shopify per their docs; Lemon Squeezy, Gumroad, Paddle, Polar, Dodo need checking with a real key. First page only (100-250 orders/day)"
 AI usage for Cursor and Grok,ai,could,yes,no,one listing only
 Teleprompter,creator,could,yes,partial,"M3a: script scrolls under the camera, speed + text size, keeps the notch open while playing"
-Quick Mirror (camera preview),creator,could,yes,partial,"M3a: mirrored front camera, runs only while visible"
+Quick Mirror (camera preview),creator,could,yes,yes,"M3a: mirrored front camera, runs only while visible; confirmed on a real Mac 2026-10-13"
 Emoji picker,utilities,could,yes,partial,"M3a: every single-character emoji from Swift's Unicode data, search, recents; no flags or skin tones"
 Unit and currency converter,utilities,could,yes,partial,"currency needs a rates source; M3a: 6 unit families via Measurement + 31 currencies from ECB rates (Frankfurter, no key)"
 Run Apple Shortcuts from the notch,utilities,could,unknown,skip,named in one search summary only; confirm before building
