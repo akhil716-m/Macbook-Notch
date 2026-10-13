@@ -201,7 +201,10 @@ struct ToolTabBar: View {
                             tab(tool).id(tool)
                         }
                     }
+                    .padding(.horizontal, NotchStyle.Space.m)
                 }
+                // Fade the ends so a tab cut off at the edge reads as "scroll for more".
+                .mask(ScrollEdgeFade(width: NotchStyle.Space.m))
                 .onAppear { proxy.scrollTo(selected, anchor: .center) }
                 .onChange(of: selected) { _, tool in
                     withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(tool, anchor: .center) }
@@ -241,6 +244,21 @@ struct ToolTabBar: View {
         .help(tool.title)
         .accessibilityLabel(tool.title)
         .accessibilityAddTraits(tool == selected ? .isSelected : [])
+    }
+}
+
+/// Opaque in the middle, fading to clear over `width` at each end.
+private struct ScrollEdgeFade: View {
+    let width: CGFloat
+
+    var body: some View {
+        HStack(spacing: 0) {
+            LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
+                .frame(width: width)
+            Color.black
+            LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                .frame(width: width)
+        }
     }
 }
 

@@ -136,3 +136,6 @@ MacBook on macOS 27.0.1, Apple silicon.
   the notch strip, which this Mac was already drawing correctly. The strip
   itself is left empty. Settings › General now shows the screen and notch
   measurements to help diagnose layout problems.
+- **Tabs confirmed** on the real Mac once the Sparkle crash was fixed: the
+  scrolling row under the notch shows, and switching to Shelf works. The row
+  holds about 15 of 19 tools at once, so its ends now fade to show it scrolls.
