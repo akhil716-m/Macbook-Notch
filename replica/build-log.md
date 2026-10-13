@@ -139,3 +139,6 @@ MacBook on macOS 27.0.1, Apple silicon.
 - **Tabs confirmed** on the real Mac once the Sparkle crash was fixed: the
   scrolling row under the notch shows, and switching to Shelf works. The row
   holds about 15 of 19 tools at once, so its ends now fade to show it scrolls.
+- The user asked for the tab row at the **bottom** of the panel, like a dock,
+  with the tool's content above it. Content still starts below the taller of
+  the notch and the menu bar.

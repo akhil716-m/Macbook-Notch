@@ -3,7 +3,7 @@ Notch-shaped panel over the hardware notch,shell,must,yes,yes,"borderless always
 Hover to expand / leave to collapse with spring animation,shell,must,yes,yes,"click to open too (SaaSCity); M0: hover + click to open; needs a feel pass on a real Mac; confirmed on a real MacBook (macOS 27.0.1, Apple silicon) 2026-10-13"
 Floating notch on Macs without a notch and on external displays,shell,must,yes,partial,M0: floating notch on the main screen only; no multi-display setting yet; M1: floating notch + display setting (built-in / primary / all)
 Live compact activity in the closed notch,shell,must,yes,partial,music / timer / shelf badge; exact look not seen; M0: music only (artwork + equaliser); M2: timer > music > Keep Awake priority
-Tool switcher inside the expanded panel,shell,must,yes,yes,layout not seen; tabs beside the notch were invisible on a real Mac (macOS 27); now a scrolling row under the notch with the tool name and settings gear on the right; confirmed on a real Mac 2026-10-13
+Tool switcher inside the expanded panel,shell,must,yes,yes,layout not seen; tabs beside the notch were invisible on a real Mac (macOS 27); now a scrolling row along the bottom of the panel (user preference) with the tool name and settings gear on the right; confirmed on a real Mac 2026-10-13
 Settings window (enable and reorder tools; hover behaviour; launch at login),shell,must,yes,partial,contents not seen; M1: General / Tools / Shelf / Clipboard tabs; no full-screen setting yet
 Menu bar / app lifecycle (no Dock icon; launch at login),shell,must,yes,partial,guess; M0
 Now Playing with album art scrubbing and controls,media,must,yes,partial,needs a deliberate Now Playing API choice; M0: Music + Spotify via AppleScript; browsers not covered

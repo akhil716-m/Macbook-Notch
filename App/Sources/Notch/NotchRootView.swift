@@ -57,13 +57,6 @@ struct NotchRootView: View {
                 // Nothing goes level with the notch or the menu bar: the
                 // camera housing and the menu bar can cover it.
                 Color.clear.frame(height: model.layout.contentTop + NotchStyle.Space.s)
-                ToolTabBar(
-                    tools: settings.tools.enabled,
-                    selected: selected,
-                    onSelect: { settings.selectedTool = $0 },
-                    onOpenSettings: { services.openSettings() }
-                )
-                .padding(.horizontal, NotchStyle.Space.l)
                 Group {
                     if license.allowsUse {
                         toolView(selected)
@@ -72,9 +65,20 @@ struct NotchRootView: View {
                     }
                 }
                     .padding(.horizontal, NotchStyle.Space.xl)
-                    .padding(.top, NotchStyle.Space.xs)
-                    .padding(.bottom, NotchStyle.Space.l)
+                    .padding(.bottom, NotchStyle.Space.s)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Rectangle()
+                    .fill(NotchStyle.Palette.rowBackground)
+                    .frame(height: 1)
+                    .padding(.horizontal, NotchStyle.Space.xl)
+                ToolTabBar(
+                    tools: settings.tools.enabled,
+                    selected: selected,
+                    onSelect: { settings.selectedTool = $0 },
+                    onOpenSettings: { services.openSettings() }
+                )
+                .padding(.horizontal, NotchStyle.Space.xl)
+                .padding(.vertical, NotchStyle.Space.xs)
             }
         }
     }
@@ -182,7 +186,7 @@ struct NotchRootView: View {
     }
 }
 
-/// The row of tool tabs at the top of the open panel. Scrolls sideways when
+/// The row of tool tabs along the bottom of the open panel. Scrolls sideways when
 /// there are more tools than fit; the selected tool's name and the Settings
 /// button stay put on the right.
 struct ToolTabBar: View {
