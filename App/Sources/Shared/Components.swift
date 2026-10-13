@@ -19,7 +19,147 @@ struct ChipButtonStyle: ButtonStyle {
                         : (configuration.isPressed ? NotchStyle.Palette.selection : NotchStyle.Palette.rowBackground)
                 )
             )
+            .overlay(Capsule().strokeBorder(isProminent ? Color.clear : NotchStyle.Palette.border, lineWidth: 1))
             .contentShape(Capsule())
+    }
+}
+
+/// The dark grey container most tool content sits in: a slightly lighter
+/// fill than the panel with a hairline border.
+struct NotchCardBackground: View {
+    var radius: CGFloat = NotchStyle.Card.radius
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: radius, style: .continuous)
+            .fill(NotchStyle.Palette.rowBackground)
+            .overlay(
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .strokeBorder(NotchStyle.Palette.border, lineWidth: NotchStyle.Card.border)
+            )
+    }
+}
+
+extension View {
+    /// Pads the content and puts it on a card.
+    func notchCard(padding: CGFloat = NotchStyle.Card.padding, radius: CGFloat = NotchStyle.Card.radius) -> some View {
+        self.padding(padding).background(NotchCardBackground(radius: radius))
+    }
+}
+
+/// A row of mutually exclusive options on a dark track; the chosen one is a
+/// white pill with dark text. Arrow keys aren't wired up because the notch
+/// panel rarely has keyboard focus; each option is a real button instead.
+struct SegmentedPicker<Option: Hashable>: View {
+    let options: [Option]
+    @Binding var selection: Option
+    let title: (Option) -> String
+
+    @Namespace private var pill
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(options, id: \.self) { option in
+                let isSelected = option == selection
+                Button {
+                    withAnimation(NotchStyle.spring) { selection = option }
+                } label: {
+                    Text(title(option))
+                        .font(NotchStyle.Font.segment)
+                        .foregroundStyle(isSelected ? NotchStyle.Palette.background : NotchStyle.Palette.primaryText)
+                        .lineLimit(1)
+                        .padding(.horizontal, NotchStyle.Segment.padding)
+                        .frame(maxHeight: .infinity)
+                        .background {
+                            if isSelected {
+                                RoundedRectangle(cornerRadius: NotchStyle.Segment.radius - NotchStyle.Segment.inset, style: .continuous)
+                                    .fill(NotchStyle.Palette.fill)
+                                    .matchedGeometryEffect(id: "pill", in: pill)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(NotchStyle.Segment.inset)
+        .frame(height: NotchStyle.Segment.height)
+        .background(
+            RoundedRectangle(cornerRadius: NotchStyle.Segment.radius, style: .continuous)
+                .fill(NotchStyle.Palette.rowBackground)
+        )
+    }
+}
+
+/// A circular button. `.primary` is white with a dark symbol, for the one
+/// main action (play, start); `.secondary` is dark grey with a hairline.
+struct RoundButtonStyle: ButtonStyle {
+    enum Kind { case primary, secondary }
+    var kind: Kind = .secondary
+    var size: CGFloat = NotchStyle.RoundButton.large
+
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(
+                size: size >= NotchStyle.RoundButton.large ? NotchStyle.RoundButton.largeSymbol : NotchStyle.RoundButton.smallSymbol,
+                weight: .semibold
+            ))
+            .foregroundStyle(kind == .primary ? NotchStyle.Palette.background : NotchStyle.Palette.primaryText)
+            .frame(width: size, height: size)
+            .background(
+                Circle().fill(kind == .primary ? NotchStyle.Palette.fill : NotchStyle.Palette.rowBackground)
+            )
+            .overlay(
+                Circle().strokeBorder(kind == .primary ? Color.clear : NotchStyle.Palette.border, lineWidth: 1)
+            )
+            .contentShape(Circle())
+            .opacity(isEnabled ? (configuration.isPressed ? 0.75 : 1) : 0.4)
+            .scaleEffect(configuration.isPressed ? 0.94 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+/// A round icon button for a symbol with an accessible label.
+struct RoundIconButton: View {
+    let symbol: String
+    let label: String
+    var kind: RoundButtonStyle.Kind = .secondary
+    var size: CGFloat = NotchStyle.RoundButton.large
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+        }
+        .buttonStyle(RoundButtonStyle(kind: kind, size: size))
+        .help(label)
+        .accessibilityLabel(label)
+    }
+}
+
+/// The small buttons at the top right of the open panel. `isOn` gives the
+/// button a filled circle, for toggles such as Pin.
+struct HeaderIconButton: View {
+    let symbol: String
+    let label: String
+    var isOn = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: NotchStyle.Header.symbolSize, weight: .medium))
+                .foregroundStyle(isOn ? NotchStyle.Palette.primaryText : NotchStyle.Palette.secondaryText)
+                .frame(width: NotchStyle.Header.buttonSize, height: NotchStyle.Header.buttonSize)
+                .background(Circle().fill(isOn ? NotchStyle.Palette.selection : Color.clear))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .help(label)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 

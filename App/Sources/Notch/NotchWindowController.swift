@@ -134,10 +134,12 @@ final class NotchWindowController {
             }
         }
 
-        // Stay open while a button is held, a file hovers over us, or you're typing in the notch.
+        // Stay open while pinned, while a button is held, while a file hovers
+        // over us, or while you're typing in the notch.
         let typing = panel?.isKeyWindow == true && panel?.firstResponder is NSTextView
         let reading = services.teleprompter.isPlaying
-        let holdOpen = debouncer.isOpen && (NSEvent.pressedMouseButtons != 0 || model.isDropTargeted || typing || reading)
+        let holdOpen = debouncer.isOpen
+            && (model.isPinned || NSEvent.pressedMouseButtons != 0 || model.isDropTargeted || typing || reading)
         if debouncer.update(pointerInside: inside, holdOpen: holdOpen, now: now) {
             applyOpenState()
         }
@@ -172,6 +174,7 @@ final class NotchWindowController {
         } else {
             model.optionHeld = false
             model.isDropTargeted = false
+            model.isPinned = false
             services.notes.flush()
             giveBackKeyboard()
         }

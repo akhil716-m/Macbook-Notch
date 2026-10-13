@@ -26,7 +26,7 @@ struct TimersPanel: View {
                 EmptyToolState(symbol: "timer", title: "No timers running", message: "Pick a length above to start one.")
             } else {
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: NotchStyle.Space.xxs) {
+                    VStack(spacing: NotchStyle.Space.s) {
                         ForEach(timers.timers) { timer in
                             TimerRow(timer: timer, timers: timers)
                         }
@@ -60,29 +60,26 @@ private struct TimerRow: View {
                         tint: state == .paused ? NotchStyle.Palette.secondaryText : NotchStyle.Palette.accent
                     )
                 }
+                let small = NotchStyle.RoundButton.small
                 switch state {
                 case .running:
-                    IconButton(symbol: "pause.fill", label: "Pause") { timers.pause(timer.id) }
+                    RoundIconButton(symbol: "pause.fill", label: "Pause", kind: .primary, size: small) { timers.pause(timer.id) }
                 case .paused:
-                    IconButton(symbol: "play.fill", label: "Resume") { timers.resume(timer.id) }
+                    RoundIconButton(symbol: "play.fill", label: "Resume", kind: .primary, size: small) { timers.resume(timer.id) }
                 case .finished:
-                    IconButton(symbol: "arrow.counterclockwise", label: "Start again") { timers.restart(timer.id) }
+                    RoundIconButton(symbol: "arrow.counterclockwise", label: "Start again", kind: .primary, size: small) { timers.restart(timer.id) }
                 }
-                IconButton(symbol: "xmark", label: "Remove timer") { timers.remove(timer.id) }
+                RoundIconButton(symbol: "xmark", label: "Remove timer", size: small) { timers.remove(timer.id) }
             }
-            .padding(.horizontal, NotchStyle.Space.m)
-            .padding(.vertical, NotchStyle.Space.xs)
-            .background(
-                RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                    .fill(NotchStyle.Palette.rowBackground)
-            )
+            .notchCard(padding: NotchStyle.Space.m)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("\(timer.label), \(state == .finished ? "done" : CountdownFormatter.string(from: timer.remaining(at: context.date)) + " left")")
         }
     }
 }
 
-/// The closed notch while a timer runs: timer icon left, time left right.
+/// The closed notch while a timer runs: a progress ring on the left, the
+/// time left on the right.
 struct CompactTimerActivity: View {
     @ObservedObject var timers: TimerService
     let timerID: UUID
@@ -90,24 +87,46 @@ struct CompactTimerActivity: View {
     let notchWidth: CGFloat
 
     var body: some View {
-        HStack(spacing: 0) {
-            Image(systemName: finished ? "bell.fill" : "timer")
-                .font(NotchStyle.Font.compactIcon)
-                .foregroundStyle(NotchStyle.Palette.accent)
-            Spacer(minLength: notchWidth)
-            if finished {
-                Text("Done")
-                    .font(NotchStyle.Font.compactValue)
-                    .foregroundStyle(NotchStyle.Palette.accent)
-            } else if let timer = timers.timer(timerID) {
-                TimelineView(.periodic(from: .now, by: 1)) { context in
-                    Text(CountdownFormatter.string(from: timer.remaining(at: context.date)))
-                        .font(NotchStyle.Font.compactValue)
-                        .foregroundStyle(NotchStyle.Palette.primaryText)
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            let timer = timers.timer(timerID)
+            HStack(spacing: 0) {
+                ProgressRing(
+                    fraction: finished ? 1 : (timer?.progress(at: context.date) ?? 0),
+                    symbol: finished ? "bell.fill" : "timer"
+                )
+                Spacer(minLength: notchWidth)
+                Group {
+                    if finished {
+                        Text("Done").foregroundStyle(NotchStyle.Palette.accent)
+                    } else if let timer {
+                        Text(CountdownFormatter.string(from: timer.remaining(at: context.date)))
+                            .foregroundStyle(NotchStyle.Palette.primaryText)
+                    }
                 }
+                .font(NotchStyle.Font.compactValue)
             }
         }
-        .padding(.horizontal, NotchStyle.Space.m)
+        .padding(.horizontal, NotchStyle.Space.l)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// A small ring that fills clockwise, with a symbol in the middle.
+struct ProgressRing: View {
+    let fraction: Double
+    let symbol: String
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(NotchStyle.Palette.track, lineWidth: NotchStyle.Compact.ringWidth)
+            Circle()
+                .trim(from: 0, to: CGFloat(min(max(fraction, 0), 1)))
+                .stroke(NotchStyle.Palette.accent, style: StrokeStyle(lineWidth: NotchStyle.Compact.ringWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Image(systemName: symbol)
+                .font(.system(size: NotchStyle.Compact.ringSymbol, weight: .semibold))
+                .foregroundStyle(NotchStyle.Palette.primaryText)
+        }
+        .frame(width: NotchStyle.Compact.ring, height: NotchStyle.Compact.ring)
     }
 }

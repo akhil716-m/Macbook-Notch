@@ -12,6 +12,9 @@ final class NotchViewModel: ObservableObject {
     @Published var isDropTargeted = false
     /// ⌥ is held: show delete buttons on shelf and clipboard items.
     @Published var optionHeld = false
+    /// Pinned open: moving the pointer away doesn't close the panel.
+    /// Escape or unpinning does.
+    @Published var isPinned = false
 
     init(layout: NotchLayout) {
         self.layout = layout

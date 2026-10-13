@@ -56,7 +56,15 @@ struct NotchRootView: View {
             VStack(spacing: 0) {
                 // Nothing goes level with the notch or the menu bar: the
                 // camera housing and the menu bar can cover it.
-                Color.clear.frame(height: model.layout.contentTop + NotchStyle.Space.s)
+                Color.clear.frame(height: model.layout.contentTop)
+                PanelHeader(
+                    title: selected.title,
+                    isPinned: model.isPinned,
+                    onTogglePin: { model.isPinned.toggle() },
+                    onOpenSettings: { services.openSettings() }
+                )
+                .padding(.leading, NotchStyle.Space.xl)
+                .padding(.trailing, NotchStyle.Space.l)
                 Group {
                     if license.allowsUse {
                         toolView(selected)
@@ -65,20 +73,16 @@ struct NotchRootView: View {
                     }
                 }
                     .padding(.horizontal, NotchStyle.Space.xl)
-                    .padding(.bottom, NotchStyle.Space.s)
+                    .padding(.top, NotchStyle.Space.s)
+                    .padding(.bottom, NotchStyle.Space.m)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                Rectangle()
-                    .fill(NotchStyle.Palette.rowBackground)
-                    .frame(height: 1)
-                    .padding(.horizontal, NotchStyle.Space.xl)
                 ToolTabBar(
                     tools: settings.tools.enabled,
                     selected: selected,
-                    onSelect: { settings.selectedTool = $0 },
-                    onOpenSettings: { services.openSettings() }
+                    onSelect: { settings.selectedTool = $0 }
                 )
-                .padding(.horizontal, NotchStyle.Space.xl)
-                .padding(.vertical, NotchStyle.Space.xs)
+                .padding(.horizontal, NotchStyle.Space.l)
+                .padding(.bottom, NotchStyle.Tab.bottomInset)
             }
         }
     }
@@ -186,67 +190,86 @@ struct NotchRootView: View {
     }
 }
 
-/// The row of tool tabs along the bottom of the open panel. Scrolls sideways when
-/// there are more tools than fit; the selected tool's name and the Settings
-/// button stay put on the right.
+/// The top row of the open panel: the tool's name on the left, Pin and
+/// Settings on the right.
+struct PanelHeader: View {
+    let title: String
+    let isPinned: Bool
+    let onTogglePin: () -> Void
+    let onOpenSettings: () -> Void
+
+    var body: some View {
+        HStack(spacing: NotchStyle.Space.xs) {
+            Text(title)
+                .font(NotchStyle.Font.header)
+                .foregroundStyle(NotchStyle.Palette.primaryText)
+                .lineLimit(1)
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: NotchStyle.Space.m)
+            HeaderIconButton(
+                symbol: isPinned ? "pin.fill" : "pin",
+                label: isPinned ? "Unpin: close when the pointer leaves" : "Pin: keep open when the pointer leaves",
+                isOn: isPinned,
+                action: onTogglePin
+            )
+            HeaderIconButton(symbol: "gearshape", label: "Settings", action: onOpenSettings)
+        }
+        .frame(height: NotchStyle.Header.height)
+    }
+}
+
+/// The tool icons along the bottom of the open panel, centred. When there
+/// are more than fit, the row scrolls sideways and its ends fade.
 struct ToolTabBar: View {
     let tools: [NotchTool]
     let selected: NotchTool
     let onSelect: (NotchTool) -> Void
-    let onOpenSettings: () -> Void
 
     var body: some View {
-        HStack(spacing: NotchStyle.Space.s) {
+        ViewThatFits(in: .horizontal) {
+            row
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: NotchStyle.Space.xxs) {
-                        ForEach(tools) { tool in
-                            tab(tool).id(tool)
-                        }
-                    }
-                    .padding(.horizontal, NotchStyle.Space.m)
+                    row.padding(.horizontal, NotchStyle.Space.m)
                 }
-                // Fade the ends so a tab cut off at the edge reads as "scroll for more".
                 .mask(ScrollEdgeFade(width: NotchStyle.Space.m))
                 .onAppear { proxy.scrollTo(selected, anchor: .center) }
                 .onChange(of: selected) { _, tool in
                     withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(tool, anchor: .center) }
                 }
             }
-            Text(selected.title)
-                .font(NotchStyle.Font.caption)
-                .foregroundStyle(NotchStyle.Palette.secondaryText)
-                .lineLimit(1)
-                .fixedSize()
-            Button(action: onOpenSettings) {
-                Image(systemName: "gearshape")
-                    .font(NotchStyle.Font.tab)
-                    .foregroundStyle(NotchStyle.Palette.secondaryText)
-                    .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .help("Settings")
-            .accessibilityLabel("Settings")
         }
+        .frame(maxWidth: .infinity)
         .frame(height: NotchStyle.Tab.barHeight)
     }
 
+    private var row: some View {
+        HStack(spacing: NotchStyle.Tab.spacing) {
+            ForEach(tools) { tool in
+                tab(tool).id(tool)
+            }
+        }
+    }
+
     private func tab(_ tool: NotchTool) -> some View {
-        Button {
+        let isSelected = tool == selected
+        return Button {
             onSelect(tool)
         } label: {
             Image(systemName: tool.symbolName)
                 .font(NotchStyle.Font.tab)
-                .foregroundStyle(tool == selected ? NotchStyle.Palette.primaryText : NotchStyle.Palette.secondaryText)
+                .foregroundStyle(isSelected ? NotchStyle.Palette.primaryText : NotchStyle.Palette.secondaryText)
                 .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
-                .background(Capsule().fill(tool == selected ? NotchStyle.Palette.selection : Color.clear))
-                .contentShape(Capsule())
+                .background(
+                    RoundedRectangle(cornerRadius: NotchStyle.Tab.radius, style: .continuous)
+                        .fill(isSelected ? NotchStyle.Palette.selection : Color.clear)
+                )
+                .contentShape(RoundedRectangle(cornerRadius: NotchStyle.Tab.radius, style: .continuous))
         }
         .buttonStyle(.plain)
         .help(tool.title)
         .accessibilityLabel(tool.title)
-        .accessibilityAddTraits(tool == selected ? .isSelected : [])
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

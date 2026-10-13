@@ -97,6 +97,28 @@ jobs:
             exit 1
           fi
 
+      # Draws the design system and sample panels to PNGs, then prints them
+      # base64-encoded so they can be read back from the log.
+      - name: Design snapshots
+        continue-on-error: true
+        run: |
+          app=build/Build/Products/Release/MacbookNotch.app/Contents/MacOS/MacbookNotch
+          "$app" --design-snapshots "$PWD/snapshots"
+          for f in snapshots/*.png; do
+            echo "BEGIN-SNAPSHOT $(basename "$f")"
+            base64 -i "$f" | tr -d '\n'
+            echo
+            echo "END-SNAPSHOT"
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: design-snapshots-${{ github.sha }}
+          path: snapshots
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Zip app
         run: ditto -c -k --keepParent build/Build/Products/Release/MacbookNotch.app MacbookNotch.zip
 

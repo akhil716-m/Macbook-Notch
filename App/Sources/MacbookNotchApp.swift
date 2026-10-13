@@ -34,6 +34,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         MainActor.assumeIsolated {
+            if let folder = DesignSnapshots.requestedFolder {
+                DesignSnapshots.write(to: folder)
+                exit(0)
+            }
             let services = AppServices()
             services.start()
             let coordinator = NotchCoordinator(services: services)

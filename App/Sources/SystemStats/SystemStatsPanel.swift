@@ -1,35 +1,48 @@
 import NotchCore
 import SwiftUI
 
-/// The System tool: CPU, memory and network at a glance. Sampling only
-/// runs while this view is on screen.
+/// The System tool: CPU, memory and network as rows in one card. Sampling
+/// only runs while this view is on screen.
 struct SystemStatsPanel: View {
     @ObservedObject var stats: SystemStatsService
 
     var body: some View {
-        HStack(spacing: NotchStyle.Space.m) {
-            StatCard(title: "CPU", value: stats.cpu.map { Self.percent($0) } ?? "–", detail: "all cores") {
-                Sparkline(values: stats.cpuHistory)
-                    .stroke(NotchStyle.Palette.accent, style: StrokeStyle(lineWidth: 1.5, lineJoin: .round))
+        VStack(spacing: 0) {
+            StatRow(symbol: "cpu", title: "CPU", value: stats.cpu.map { Self.percent($0) } ?? "–") {
+                MeterBar(fraction: stats.cpu ?? 0)
             }
-            StatCard(
+            Divider().overlay(NotchStyle.Palette.border)
+            StatRow(
+                symbol: "memorychip",
                 title: "Memory",
-                value: stats.memory.map { ByteFormat.string(Double($0.used)) } ?? "–",
-                detail: stats.memory.map { "of " + ByteFormat.string(Double($0.total)) } ?? ""
+                value: stats.memory.map { ByteFormat.string(Double($0.used)) } ?? "–"
             ) {
-                VStack {
-                    Spacer()
-                    MeterBar(fraction: stats.memory?.fraction ?? 0, tint: NotchStyle.Palette.accent)
-                }
+                MeterBar(fraction: stats.memory?.fraction ?? 0)
             }
-            StatCard(
+            Divider().overlay(NotchStyle.Palette.border)
+            StatRow(
+                symbol: "network",
                 title: "Network",
-                value: "↓ " + ByteFormat.rate(stats.network.receivedPerSecond),
-                detail: "↑ " + ByteFormat.rate(stats.network.sentPerSecond)
+                value: "",
+                spokenValue: "down \(ByteFormat.rate(stats.network.receivedPerSecond)), up \(ByteFormat.rate(stats.network.sentPerSecond))"
             ) {
-                EmptyView()
+                HStack(spacing: NotchStyle.Space.m) {
+                    Text("↓ " + ByteFormat.rate(stats.network.receivedPerSecond))
+                    Text("↑ " + ByteFormat.rate(stats.network.sentPerSecond))
+                    Spacer(minLength: 0)
+                }
+                .font(NotchStyle.Font.caption.weight(.semibold))
+                .foregroundStyle(NotchStyle.Palette.primaryText)
+            }
+            Divider().overlay(NotchStyle.Palette.border)
+            StatRow(symbol: "waveform.path.ecg", title: "Recent CPU", value: "", spokenValue: "graph of recent CPU use") {
+                Sparkline(values: stats.cpuHistory)
+                    .stroke(NotchStyle.Palette.secondaryText, style: StrokeStyle(lineWidth: 1.5, lineJoin: .round))
+                    .frame(height: NotchStyle.Space.l)
             }
         }
+        .notchCard(padding: NotchStyle.Space.m)
+        .frame(maxHeight: .infinity, alignment: .top)
         .onAppear { stats.beginViewing() }
         .onDisappear { stats.endViewing() }
     }
@@ -39,35 +52,38 @@ struct SystemStatsPanel: View {
     }
 }
 
-private struct StatCard<Graphic: View>: View {
+/// Icon, name, a graphic that fills the middle, and a value on the right.
+struct StatRow<Graphic: View>: View {
+    let symbol: String
     let title: String
     let value: String
-    let detail: String
+    /// What VoiceOver reads when the value is shown only as a graphic.
+    var spokenValue: String?
     @ViewBuilder let graphic: () -> Graphic
 
     var body: some View {
-        VStack(alignment: .leading, spacing: NotchStyle.Space.xxs) {
-            Text(title.uppercased())
-                .font(NotchStyle.Font.caption)
+        HStack(spacing: NotchStyle.Space.m) {
+            Image(systemName: symbol)
+                .font(.system(size: NotchStyle.Row.iconSize))
                 .foregroundStyle(NotchStyle.Palette.secondaryText)
-            Text(value)
-                .font(NotchStyle.Font.statValue)
-                .foregroundStyle(NotchStyle.Palette.primaryText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text(detail)
-                .font(NotchStyle.Font.caption)
+                .frame(width: NotchStyle.StatRow.iconWidth)
+            Text(title)
+                .font(NotchStyle.Font.rowTitle)
                 .foregroundStyle(NotchStyle.Palette.secondaryText)
-                .lineLimit(1)
+                .frame(width: NotchStyle.StatRow.labelWidth, alignment: .leading)
             graphic()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
+            if !value.isEmpty {
+                Text(value)
+                    .font(NotchStyle.Font.caption.weight(.semibold))
+                    .foregroundStyle(NotchStyle.Palette.primaryText)
+                    .lineLimit(1)
+                    .frame(width: NotchStyle.StatRow.valueWidth, alignment: .trailing)
+            }
         }
-        .padding(NotchStyle.Space.m)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(
-            RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                .fill(NotchStyle.Palette.rowBackground)
-        )
-        .accessibilityElement(children: .combine)
+        .padding(.vertical, NotchStyle.Space.s)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title)
+        .accessibilityValue(spokenValue ?? value)
     }
 }

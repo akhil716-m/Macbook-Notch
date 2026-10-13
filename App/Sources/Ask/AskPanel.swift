@@ -162,7 +162,7 @@ struct CompactVolumeActivity: View {
             MeterBar(fraction: volume.isMuted ? 0 : Double(volume.level))
                 .frame(width: NotchStyle.Volume.meterWidth)
         }
-        .padding(.horizontal, NotchStyle.Space.m)
+        .padding(.horizontal, NotchStyle.Space.l)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(volume.isMuted ? "Muted" : "Volume \(Int((volume.level * 100).rounded())) percent")
     }

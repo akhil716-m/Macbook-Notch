@@ -121,47 +121,45 @@ struct ConverterPanel: View {
     var body: some View {
         let category = ConversionCategory(rawValue: categoryRaw) ?? .length
         let (from, to) = pair(for: category)
-        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: NotchStyle.Space.xs) {
-                    ForEach(ConversionCategory.allCases) { option in
-                        Button(option.title) { select(option) }
-                            .buttonStyle(ChipButtonStyle(isProminent: option == category))
-                    }
-                }
-            }
+        VStack(spacing: NotchStyle.Space.m) {
+            SegmentedPicker(
+                options: ConversionCategory.allCases,
+                selection: Binding(get: { category }, set: { select($0) }),
+                title: \.title
+            )
             HStack(spacing: NotchStyle.Space.m) {
-                TextField("Amount", text: $input)
-                    .textFieldStyle(.plain)
-                    .font(NotchStyle.Font.countdown)
-                    .padding(.horizontal, NotchStyle.Space.m)
-                    .frame(width: NotchStyle.Converter.inputWidth, height: NotchStyle.Chip.height + NotchStyle.Space.s)
-                    .background(
-                        RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                            .fill(NotchStyle.Palette.rowBackground)
-                    )
-                unitMenu(selected: from, in: category) { fromID = $0.id }
+                VStack(spacing: NotchStyle.Space.s) {
+                    TextField("Amount", text: $input)
+                        .textFieldStyle(.plain)
+                        .font(NotchStyle.Font.display)
+                        .multilineTextAlignment(.center)
+                        .accessibilityLabel("Amount in \(from.name)")
+                    unitMenu(selected: from, in: category) { fromID = $0.id }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .notchCard()
+
                 IconButton(symbol: "arrow.left.arrow.right", label: "Swap units") {
                     fromID = to.id
                     toID = from.id
                 }
-                unitMenu(selected: to, in: category) { toID = $0.id }
-            }
-            HStack(alignment: .firstTextBaseline, spacing: NotchStyle.Space.s) {
-                Text(result(from: from, to: to, category: category))
-                    .font(NotchStyle.Weather.temperature)
-                    .foregroundStyle(NotchStyle.Palette.primaryText)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
-                    .textSelection(.enabled)
-                Text(to.symbol)
-                    .font(NotchStyle.Font.subtitle)
-                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+
+                VStack(spacing: NotchStyle.Space.s) {
+                    Text(result(from: from, to: to, category: category))
+                        .font(NotchStyle.Font.display)
+                        .foregroundStyle(NotchStyle.Palette.primaryText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.4)
+                        .textSelection(.enabled)
+                    unitMenu(selected: to, in: category) { toID = $0.id }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .notchCard()
             }
             if category == .currency {
                 Text(currencyNote)
                     .font(NotchStyle.Font.caption)
-                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+                    .foregroundStyle(NotchStyle.Palette.tertiaryText)
             }
         }
         .onAppear {
@@ -196,6 +194,10 @@ struct ConverterPanel: View {
         }
         .menuStyle(.borderlessButton)
         .fixedSize()
+        .padding(.horizontal, NotchStyle.Chip.horizontalPadding)
+        .frame(height: NotchStyle.Chip.height)
+        .background(Capsule().fill(NotchStyle.Palette.selection))
+        .accessibilityLabel(category == .currency ? "Currency" : "Unit")
     }
 
     private func result(from: ConversionUnit, to: ConversionUnit, category: ConversionCategory) -> String {

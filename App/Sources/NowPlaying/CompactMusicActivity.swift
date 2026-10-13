@@ -18,7 +18,7 @@ struct CompactMusicActivity: View {
             Spacer(minLength: notchWidth)
             EqualizerBars(isAnimating: isPlaying)
         }
-        .padding(.horizontal, NotchStyle.Space.m)
+        .padding(.horizontal, NotchStyle.Space.l)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(isPlaying ? "Music playing" : "Music paused")
     }

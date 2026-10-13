@@ -27,7 +27,7 @@ private struct NowPlayingCard: View {
         HStack(spacing: NotchStyle.Space.l) {
             ArtworkView(image: artwork, size: NotchStyle.Artwork.openSize, cornerRadius: NotchStyle.Artwork.openRadius)
 
-            VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
+            VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
                 Text(track.title.isEmpty ? "Untitled" : track.title)
                     .font(NotchStyle.Font.title)
                     .foregroundStyle(NotchStyle.Palette.primaryText)
@@ -49,11 +49,13 @@ private struct NowPlayingCard: View {
                     .frame(maxWidth: .infinity)
             }
         }
+        .notchCard(padding: NotchStyle.Space.l, radius: NotchStyle.Card.radius + 4)
+        .frame(maxHeight: .infinity)
     }
 
+    /// "Artist · Spotify": which app is playing matters more here than the album.
     private var subtitle: String {
-        let parts = [track.artist, track.album].filter { !$0.isEmpty }
-        return parts.isEmpty ? track.player.displayName : parts.joined(separator: " · ")
+        [track.artist, track.player.displayName].filter { !$0.isEmpty }.joined(separator: " · ")
     }
 }
 
@@ -126,10 +128,10 @@ struct PlaybackScrubber: View {
             HStack {
                 Text(PlaybackTimeFormatter.string(from: shownElapsed))
                 Spacer()
-                Text(duration > 0 ? "-" + PlaybackTimeFormatter.string(from: duration - shownElapsed) : "")
+                Text(duration > 0 ? PlaybackTimeFormatter.string(from: duration) : "")
             }
             .font(NotchStyle.Font.caption)
-            .foregroundStyle(NotchStyle.Palette.secondaryText)
+            .foregroundStyle(NotchStyle.Palette.tertiaryText)
         }
         .disabled(duration <= 0)
         .accessibilityElement(children: .ignore)

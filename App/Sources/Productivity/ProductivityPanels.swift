@@ -195,7 +195,7 @@ struct CompactKeepAwakeActivity: View {
                 .font(NotchStyle.Font.compactValue)
                 .foregroundStyle(NotchStyle.Palette.secondaryText)
         }
-        .padding(.horizontal, NotchStyle.Space.m)
+        .padding(.horizontal, NotchStyle.Space.l)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Keep Awake is on")
     }
