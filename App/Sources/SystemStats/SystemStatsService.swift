@@ -108,7 +108,7 @@ enum SystemSampler {
         }
         guard result == KERN_SUCCESS else { return nil }
         return MemoryUsage.fromPages(
-            internal: UInt64(stats.internal_page_count),
+            appPages: UInt64(stats.internal_page_count),
             purgeable: UInt64(stats.purgeable_count),
             wired: UInt64(stats.wire_count),
             compressed: UInt64(stats.compressor_page_count),

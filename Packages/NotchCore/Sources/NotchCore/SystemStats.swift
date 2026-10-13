@@ -100,14 +100,14 @@ public struct MemoryUsage: Equatable, Sendable {
     /// Roughly what Activity Monitor calls "Memory Used": app memory
     /// (internal minus purgeable) plus wired plus compressed.
     public static func fromPages(
-        internal: UInt64,
+        appPages: UInt64,
         purgeable: UInt64,
         wired: UInt64,
         compressed: UInt64,
         pageSize: UInt64,
         total: UInt64
     ) -> MemoryUsage {
-        let app = internal > purgeable ? internal - purgeable : 0
+        let app = appPages > purgeable ? appPages - purgeable : 0
         let used = (app + wired + compressed) * pageSize
         return MemoryUsage(used: min(used, total), total: total)
     }

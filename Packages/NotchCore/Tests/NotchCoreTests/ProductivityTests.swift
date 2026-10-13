@@ -189,7 +189,7 @@ final class SystemStatsTests: XCTestCase {
     }
 
     func testMemoryUsageFromPages() {
-        let usage = MemoryUsage.fromPages(internal: 300, purgeable: 100, wired: 50, compressed: 50, pageSize: 1_000, total: 1_000_000)
+        let usage = MemoryUsage.fromPages(appPages: 300, purgeable: 100, wired: 50, compressed: 50, pageSize: 1_000, total: 1_000_000)
         XCTAssertEqual(usage.used, 300_000)
         XCTAssertEqual(usage.fraction, 0.3)
     }
