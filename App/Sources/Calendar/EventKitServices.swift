@@ -30,8 +30,14 @@ extension ColorComponents {
 /// (iCloud, Google, Exchange... whatever is set up in Calendar).
 @MainActor
 final class CalendarService: ObservableObject {
+    /// Today and tomorrow.
     @Published private(set) var events: [AgendaEvent] = []
     @Published private(set) var access: AccessState
+    /// The month the calendar grid shows, and every event in its weeks.
+    @Published private(set) var grid = MonthGrid(containing: Date(), calendar: .current)
+    @Published private(set) var monthEvents: [AgendaEvent] = []
+    /// The day whose events are listed beside the grid.
+    @Published private(set) var selectedDay = Calendar.current.startOfDay(for: Date())
 
     private let store: EKEventStore
     private var observer: NSObjectProtocol?
@@ -60,13 +66,50 @@ final class CalendarService: ObservableObject {
         access = AccessState(EKEventStore.authorizationStatus(for: .event))
         guard access == .granted else {
             events = []
+            monthEvents = []
             return
         }
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: Date())
-        guard let end = calendar.date(byAdding: .day, value: 2, to: start) else { return }
+        if let end = calendar.date(byAdding: .day, value: 2, to: start) {
+            events = fetch(from: start, to: end)
+        }
+        monthEvents = fetch(from: grid.interval.start, to: grid.interval.end)
+    }
+
+    /// Moves the grid a month back (-1) or forward (+1).
+    func showMonth(offset: Int) {
+        grid = grid.shifted(by: offset, calendar: .current)
+        reloadMonth()
+    }
+
+    /// Back to this month, with today selected.
+    func showToday() {
+        let today = Calendar.current.startOfDay(for: Date())
+        selectedDay = today
+        if !Calendar.current.isDate(grid.monthStart, equalTo: today, toGranularity: .month) {
+            grid = MonthGrid(containing: today, calendar: .current)
+            reloadMonth()
+        }
+    }
+
+    func select(_ day: Date) {
+        selectedDay = Calendar.current.startOfDay(for: day)
+        // Picking a greyed-out day from the next or previous month turns the page.
+        if !Calendar.current.isDate(grid.monthStart, equalTo: day, toGranularity: .month) {
+            grid = MonthGrid(containing: day, calendar: .current)
+            reloadMonth()
+        }
+    }
+
+    private func reloadMonth() {
+        guard access == .granted else { return }
+        monthEvents = fetch(from: grid.interval.start, to: grid.interval.end)
+    }
+
+    private func fetch(from start: Date, to end: Date) -> [AgendaEvent] {
         let predicate = store.predicateForEvents(withStart: start, end: end, calendars: nil)
-        events = store.events(matching: predicate).map { event in
+        return store.events(matching: predicate).map { event in
             AgendaEvent(
                 id: event.eventIdentifier ?? UUID().uuidString,
                 title: event.title.flatMap { $0.isEmpty ? nil : $0 } ?? "Untitled",

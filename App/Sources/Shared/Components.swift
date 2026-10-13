@@ -19,23 +19,18 @@ struct ChipButtonStyle: ButtonStyle {
                         : (configuration.isPressed ? NotchStyle.Palette.selection : NotchStyle.Palette.rowBackground)
                 )
             )
-            .overlay(Capsule().strokeBorder(isProminent ? Color.clear : NotchStyle.Palette.border, lineWidth: 1))
             .contentShape(Capsule())
     }
 }
 
-/// The dark grey container most tool content sits in: a slightly lighter
-/// fill than the panel with a hairline border.
+/// The dark grey field most tool content sits on. It is set apart from the
+/// black panel by a step in tone alone: no outline, no shadow.
 struct NotchCardBackground: View {
     var radius: CGFloat = NotchStyle.Card.radius
 
     var body: some View {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
             .fill(NotchStyle.Palette.rowBackground)
-            .overlay(
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(NotchStyle.Palette.border, lineWidth: NotchStyle.Card.border)
-            )
     }
 }
 
@@ -92,7 +87,7 @@ struct SegmentedPicker<Option: Hashable>: View {
 }
 
 /// A circular button. `.primary` is white with a dark symbol, for the one
-/// main action (play, start); `.secondary` is dark grey with a hairline.
+/// main action (play, start); `.secondary` is dark grey.
 struct RoundButtonStyle: ButtonStyle {
     enum Kind { case primary, secondary }
     var kind: Kind = .secondary
@@ -109,10 +104,7 @@ struct RoundButtonStyle: ButtonStyle {
             .foregroundStyle(kind == .primary ? NotchStyle.Palette.background : NotchStyle.Palette.primaryText)
             .frame(width: size, height: size)
             .background(
-                Circle().fill(kind == .primary ? NotchStyle.Palette.fill : NotchStyle.Palette.rowBackground)
-            )
-            .overlay(
-                Circle().strokeBorder(kind == .primary ? Color.clear : NotchStyle.Palette.border, lineWidth: 1)
+                Circle().fill(kind == .primary ? NotchStyle.Palette.fill : NotchStyle.Palette.placeholder)
             )
             .contentShape(Circle())
             .opacity(isEnabled ? (configuration.isPressed ? 0.75 : 1) : 0.4)

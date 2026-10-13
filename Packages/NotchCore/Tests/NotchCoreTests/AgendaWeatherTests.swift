@@ -37,6 +37,68 @@ final class AgendaTests: XCTestCase {
         XCTAssertTrue(sections[0].events[1].isHappening(at: now))
     }
 
+    // MARK: Month grid
+
+    private func gridCalendar(firstWeekday: Int) -> Calendar {
+        var calendar = self.calendar
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        calendar.firstWeekday = firstWeekday
+        return calendar
+    }
+
+    func testMonthGridStartsOnTheFirstWeekdayAndFillsWholeWeeks() {
+        // 1 October 2026 is a Thursday.
+        let monday = gridCalendar(firstWeekday: 2)
+        let grid = MonthGrid(containing: now, calendar: monday)
+        XCTAssertEqual(grid.days.count, 35)
+        XCTAssertEqual(grid.rowCount, 5)
+        XCTAssertEqual(grid.days.first?.dayNumber, 28)       // Monday 28 September
+        XCTAssertFalse(grid.days[0].isInMonth)
+        XCTAssertEqual(grid.days[3].dayNumber, 1)
+        XCTAssertTrue(grid.days[3].isInMonth)
+        XCTAssertEqual(grid.days.last?.dayNumber, 1)         // Sunday 1 November
+        XCTAssertEqual(grid.weekdaySymbols, ["M", "T", "W", "T", "F", "S", "S"])
+
+        let sunday = gridCalendar(firstWeekday: 1)
+        let sundayGrid = MonthGrid(containing: now, calendar: sunday)
+        XCTAssertEqual(sundayGrid.days.first?.dayNumber, 27) // Sunday 27 September
+        XCTAssertEqual(sundayGrid.days.last?.dayNumber, 31)  // Saturday 31 October
+        XCTAssertEqual(sundayGrid.weekdaySymbols.first, "S")
+    }
+
+    func testMonthNeedingSixRows() {
+        // 1 August 2026 is a Saturday: 5 leading days + 31 = 36 cells.
+        let monday = gridCalendar(firstWeekday: 2)
+        let august = calendar.date(from: DateComponents(year: 2026, month: 8, day: 15))!
+        XCTAssertEqual(MonthGrid(containing: august, calendar: monday).rowCount, 6)
+    }
+
+    func testShiftingMonthsAndInterval() {
+        let monday = gridCalendar(firstWeekday: 2)
+        let october = MonthGrid(containing: now, calendar: monday)
+        let november = october.shifted(by: 1, calendar: monday)
+        XCTAssertEqual(monday.component(.month, from: november.monthStart), 11)
+        XCTAssertEqual(october.shifted(by: -10, calendar: monday).monthStart,
+                       calendar.date(from: DateComponents(year: 2025, month: 12, day: 1)))
+        XCTAssertEqual(october.interval.start, calendar.date(from: DateComponents(year: 2026, month: 9, day: 28)))
+        XCTAssertEqual(october.interval.end, calendar.date(from: DateComponents(year: 2026, month: 11, day: 2)))
+    }
+
+    func testEventsOnADayAndBusyDays() {
+        let events = [
+            event("late", at(day: 13, hour: 23), at(day: 14, hour: 1)),        // crosses midnight
+            event("lunch", at(day: 13, hour: 12), at(day: 13, hour: 13)),
+            event("holiday", at(day: 13, hour: 0), at(day: 14, hour: 0), allDay: true),
+            event("next week", at(day: 20, hour: 8), at(day: 20, hour: 9)),
+        ]
+        XCTAssertEqual(events.on(day: at(day: 13, hour: 15), calendar: calendar).map(\.title), ["holiday", "lunch", "late"])
+        XCTAssertEqual(events.on(day: at(day: 14, hour: 15), calendar: calendar).map(\.title), ["late"])
+        XCTAssertTrue(events.on(day: at(day: 15, hour: 15), calendar: calendar).isEmpty)
+
+        let busy = events.busyDays(calendar: calendar)
+        XCTAssertEqual(busy, [at(day: 13, hour: 0), at(day: 14, hour: 0), at(day: 20, hour: 0)])
+    }
+
     func testEmptyDaysAreLeftOut() {
         let events = [event("dentist", at(day: 14, hour: 8), at(day: 14, hour: 9))]
         XCTAssertEqual(Agenda.sections(events, now: now, calendar: calendar).map(\.title), ["Tomorrow"])

@@ -111,7 +111,7 @@ struct RevenuePanel: View {
                         } else {
                             ForEach(combined.currencies, id: \.self) { code in
                                 Text(CurrencyMath.format(minor: combined.minorUnits[code] ?? 0, currency: code))
-                                    .font(NotchStyle.Weather.temperature)
+                                    .font(NotchStyle.Font.display)
                                     .foregroundStyle(NotchStyle.Palette.primaryText)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.5)

@@ -26,6 +26,9 @@ enum DesignSnapshots {
         let pages: [(String, AnyView)] = [
             ("panel-converter", AnyView(SamplePanel(title: "Converter", selected: .converter, tools: tools) { SampleConverter() })),
             ("panel-system", AnyView(SamplePanel(title: "System", selected: .systemStats, tools: tools) { SampleSystem() })),
+            ("panel-calendar", AnyView(SamplePanel(title: "Calendar", selected: .calendar, tools: tools) { SampleCalendar() })),
+            ("panel-weather", AnyView(SamplePanel(title: "Weather", selected: .weather, tools: tools) { SampleWeather() })),
+            ("panel-keep-awake", AnyView(SamplePanel(title: "Keep Awake", selected: .keepAwake, tools: tools) { SampleKeepAwake() })),
             ("panel-music", AnyView(SamplePanel(title: "Now Playing", selected: .nowPlaying, tools: tools) { SampleMusic() })),
             ("panel-timers", AnyView(SamplePanel(title: "Timers", selected: .timers, tools: tools, pinned: true) { SampleTimers() })),
             ("compact", AnyView(SampleCompact())),
@@ -129,29 +132,81 @@ private struct SampleConverter: View {
 
 private struct SampleSystem: View {
     var body: some View {
-        VStack(spacing: 0) {
-            StatRow(symbol: "cpu", title: "CPU", value: "25%") { MeterBar(fraction: 0.25) }
-            Divider().overlay(NotchStyle.Palette.border)
-            StatRow(symbol: "memorychip", title: "Memory", value: "12.1 GB") { MeterBar(fraction: 0.7) }
-            Divider().overlay(NotchStyle.Palette.border)
-            StatRow(symbol: "network", title: "Network", value: "") {
-                HStack(spacing: NotchStyle.Space.m) {
-                    Text("↓ 932 KB/s")
-                    Text("↑ 22 KB/s")
-                    Spacer(minLength: 0)
-                }
-                .font(NotchStyle.Font.caption.weight(.semibold))
-                .foregroundStyle(NotchStyle.Palette.primaryText)
-            }
-            Divider().overlay(NotchStyle.Palette.border)
-            StatRow(symbol: "waveform.path.ecg", title: "Recent CPU", value: "") {
-                Sparkline(values: [0.2, 0.3, 0.25, 0.6, 0.4, 0.35, 0.5, 0.3, 0.2, 0.45])
-                    .stroke(NotchStyle.Palette.secondaryText, style: StrokeStyle(lineWidth: 1.5, lineJoin: .round))
-                    .frame(height: NotchStyle.Space.l)
-            }
+        SystemReadouts(
+            cpu: 0.23,
+            cpuHistory: [0.12, 0.18, 0.15, 0.32, 0.41, 0.28, 0.22, 0.35, 0.19, 0.24, 0.3, 0.23],
+            memory: MemoryUsage(used: 12_130_000_000, total: 17_179_869_184),
+            network: NetworkRate(receivedPerSecond: 932_000, sentPerSecond: 22_400)
+        )
+    }
+}
+
+private struct SampleCalendar: View {
+    var body: some View {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let at: (Int, Int) -> Date = { day, hour in
+            calendar.date(byAdding: .hour, value: day * 24 + hour, to: today) ?? today
         }
-        .notchCard(padding: NotchStyle.Space.m)
-        .frame(maxHeight: .infinity, alignment: .top)
+        let events = [
+            AgendaEvent(id: "1", title: "Design review", start: at(0, 10), end: at(0, 11),
+                        isAllDay: false, color: ColorComponents(red: 0.35, green: 0.6, blue: 1)),
+            AgendaEvent(id: "2", title: "Lunch with Priya", start: at(0, 13), end: at(0, 14),
+                        isAllDay: false, location: "Cafe Lota", color: ColorComponents(red: 0.3, green: 0.8, blue: 0.5)),
+            AgendaEvent(id: "3", title: "Release call", start: at(0, 16), end: at(0, 16) + 1_800,
+                        isAllDay: false, color: ColorComponents(red: 0.9, green: 0.5, blue: 0.3),
+                        meetingURL: URL(string: "https://meet.example.com/abc")),
+            AgendaEvent(id: "4", title: "Dentist", start: at(2, 9), end: at(2, 10), isAllDay: false),
+            AgendaEvent(id: "5", title: "Trip", start: at(5, 0), end: at(7, 0), isAllDay: true),
+        ]
+        CalendarContent(
+            grid: MonthGrid(containing: today, calendar: calendar),
+            today: today,
+            now: at(0, 12),
+            selectedDay: today,
+            events: events,
+            onSelect: { _ in },
+            onShowMonth: { _ in },
+            onShowToday: {},
+            onOpen: { _ in },
+            onJoin: { _ in }
+        )
+    }
+}
+
+private struct SampleWeather: View {
+    var body: some View {
+        let codes = [61, 0, 0, 2, 0, 1, 3]
+        let days = (0..<7).map { offset -> DailyForecast in
+            let date = Calendar.current.date(byAdding: .day, value: offset, to: Date()) ?? Date()
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(identifier: "UTC")
+            formatter.dateFormat = "yyyy-MM-dd"
+            return DailyForecast(day: formatter.string(from: date), high: Double(29 + offset % 4), low: Double(21 + offset % 2), code: codes[offset])
+        }
+        WeatherForecastView(
+            snapshot: WeatherSnapshot(
+                locationName: "Hyderabad", temperature: 24, apparentTemperature: 26, code: 0, isDay: false,
+                windSpeed: 8, days: days, unit: .celsius, fetchedAt: Date()
+            ),
+            isOffline: false,
+            onRefresh: {},
+            onChangePlace: {}
+        )
+    }
+}
+
+private struct SampleKeepAwake: View {
+    var body: some View {
+        KeepAwakeContent(
+            isActive: true,
+            endsAt: Date().addingTimeInterval(3_600),
+            displayOn: false,
+            onToggle: {},
+            onChoose: { _ in },
+            onDisplayOn: { _ in }
+        )
     }
 }
 

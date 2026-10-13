@@ -43,6 +43,13 @@ public struct DailyForecast: Codable, Hashable, Sendable {
     public var high: Double?
     public var low: Double?
     public var code: Int?
+
+    public init(day: String, high: Double?, low: Double?, code: Int?) {
+        self.day = day
+        self.high = high
+        self.low = low
+        self.code = code
+    }
 }
 
 public struct WeatherSnapshot: Codable, Equatable, Sendable {
@@ -55,6 +62,28 @@ public struct WeatherSnapshot: Codable, Equatable, Sendable {
     public var days: [DailyForecast]
     public var unit: TemperatureUnit
     public var fetchedAt: Date
+
+    public init(
+        locationName: String,
+        temperature: Double,
+        apparentTemperature: Double?,
+        code: Int,
+        isDay: Bool,
+        windSpeed: Double?,
+        days: [DailyForecast],
+        unit: TemperatureUnit,
+        fetchedAt: Date
+    ) {
+        self.locationName = locationName
+        self.temperature = temperature
+        self.apparentTemperature = apparentTemperature
+        self.code = code
+        self.isDay = isDay
+        self.windSpeed = windSpeed
+        self.days = days
+        self.unit = unit
+        self.fetchedAt = fetchedAt
+    }
 
     public var condition: WeatherCondition { WeatherCondition(code: code) }
 
@@ -125,7 +154,7 @@ public enum OpenMeteo {
             URLQueryItem(name: "daily", value: "weather_code,temperature_2m_max,temperature_2m_min"),
             URLQueryItem(name: "temperature_unit", value: unit.rawValue),
             URLQueryItem(name: "timezone", value: "auto"),
-            URLQueryItem(name: "forecast_days", value: "4"),
+            URLQueryItem(name: "forecast_days", value: "7"),
         ]
         return components?.url
     }

@@ -1,90 +1,96 @@
 import NotchCore
 import SwiftUI
 
-/// The System tool: CPU, memory and network as rows in one card. Sampling
-/// only runs while this view is on screen.
+/// The System tool: CPU, memory and network as three large readouts.
+/// Sampling only runs while this view is on screen.
 struct SystemStatsPanel: View {
     @ObservedObject var stats: SystemStatsService
 
     var body: some View {
-        VStack(spacing: 0) {
-            StatRow(symbol: "cpu", title: "CPU", value: stats.cpu.map { Self.percent($0) } ?? "–") {
-                MeterBar(fraction: stats.cpu ?? 0)
-            }
-            Divider().overlay(NotchStyle.Palette.border)
-            StatRow(
-                symbol: "memorychip",
-                title: "Memory",
-                value: stats.memory.map { ByteFormat.string(Double($0.used)) } ?? "–"
-            ) {
-                MeterBar(fraction: stats.memory?.fraction ?? 0)
-            }
-            Divider().overlay(NotchStyle.Palette.border)
-            StatRow(
-                symbol: "network",
-                title: "Network",
-                value: "",
-                spokenValue: "down \(ByteFormat.rate(stats.network.receivedPerSecond)), up \(ByteFormat.rate(stats.network.sentPerSecond))"
-            ) {
-                HStack(spacing: NotchStyle.Space.m) {
-                    Text("↓ " + ByteFormat.rate(stats.network.receivedPerSecond))
-                    Text("↑ " + ByteFormat.rate(stats.network.sentPerSecond))
-                    Spacer(minLength: 0)
-                }
-                .font(NotchStyle.Font.caption.weight(.semibold))
-                .foregroundStyle(NotchStyle.Palette.primaryText)
-            }
-            Divider().overlay(NotchStyle.Palette.border)
-            StatRow(symbol: "waveform.path.ecg", title: "Recent CPU", value: "", spokenValue: "graph of recent CPU use") {
-                Sparkline(values: stats.cpuHistory)
-                    .stroke(NotchStyle.Palette.secondaryText, style: StrokeStyle(lineWidth: 1.5, lineJoin: .round))
-                    .frame(height: NotchStyle.Space.l)
-            }
-        }
-        .notchCard(padding: NotchStyle.Space.m)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .onAppear { stats.beginViewing() }
-        .onDisappear { stats.endViewing() }
-    }
-
-    private static func percent(_ value: Double) -> String {
-        "\(Int((value * 100).rounded()))%"
+        SystemReadouts(cpu: stats.cpu, cpuHistory: stats.cpuHistory, memory: stats.memory, network: stats.network)
+            .onAppear { stats.beginViewing() }
+            .onDisappear { stats.endViewing() }
     }
 }
 
-/// Icon, name, a graphic that fills the middle, and a value on the right.
-struct StatRow<Graphic: View>: View {
+/// The three readouts, from plain values so they can also be drawn with
+/// sample data. Each is a name, a large number with its unit, and one line
+/// of context underneath.
+struct SystemReadouts: View {
+    let cpu: Double?
+    let cpuHistory: [Double]
+    let memory: MemoryUsage?
+    let network: NetworkRate
+
+    var body: some View {
+        HStack(alignment: .top, spacing: NotchStyle.Space.xl) {
+            Readout(symbol: "cpu", title: "CPU", value: cpu.map { "\(Int(($0 * 100).rounded()))%" } ?? "–") {
+                Sparkline(values: cpuHistory)
+                    .stroke(NotchStyle.Palette.accent, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+                    .frame(height: NotchStyle.Readout.graphicHeight)
+            }
+            Readout(
+                symbol: "memorychip",
+                title: "Memory",
+                value: memory.map { ByteFormat.string(Double($0.used)) } ?? "–"
+            ) {
+                VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
+                    MeterBar(fraction: memory?.fraction ?? 0)
+                    Text(memory.map { "of " + ByteFormat.string(Double($0.total)) } ?? " ")
+                        .font(NotchStyle.Font.caption)
+                        .foregroundStyle(NotchStyle.Palette.tertiaryText)
+                }
+                .frame(height: NotchStyle.Readout.graphicHeight, alignment: .bottom)
+            }
+            Readout(symbol: "arrow.down", title: "Download", value: ByteFormat.rate(network.receivedPerSecond)) {
+                Text("↑ " + ByteFormat.rate(network.sentPerSecond) + " up")
+                    .font(NotchStyle.Font.caption)
+                    .foregroundStyle(NotchStyle.Palette.tertiaryText)
+                    .frame(height: NotchStyle.Readout.graphicHeight, alignment: .bottomLeading)
+            }
+        }
+        .padding(.horizontal, NotchStyle.Space.l)
+        .padding(.vertical, NotchStyle.Space.l)
+        .background(NotchCardBackground(radius: NotchStyle.Card.radius + 4))
+        .frame(maxHeight: .infinity)
+    }
+}
+
+private struct Readout<Graphic: View>: View {
     let symbol: String
     let title: String
     let value: String
-    /// What VoiceOver reads when the value is shown only as a graphic.
-    var spokenValue: String?
     @ViewBuilder let graphic: () -> Graphic
 
     var body: some View {
-        HStack(spacing: NotchStyle.Space.m) {
-            Image(systemName: symbol)
-                .font(.system(size: NotchStyle.Row.iconSize))
+        let (number, unit) = Self.split(value)
+        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
+            Label(title, systemImage: symbol)
+                .font(NotchStyle.Font.body)
                 .foregroundStyle(NotchStyle.Palette.secondaryText)
-                .frame(width: NotchStyle.StatRow.iconWidth)
-            Text(title)
-                .font(NotchStyle.Font.rowTitle)
-                .foregroundStyle(NotchStyle.Palette.secondaryText)
-                .lineLimit(1)
-                .frame(width: NotchStyle.StatRow.labelWidth, alignment: .leading)
-            graphic()
-                .frame(maxWidth: .infinity)
-            if !value.isEmpty {
-                Text(value)
-                    .font(NotchStyle.Font.caption.weight(.semibold))
+            HStack(alignment: .firstTextBaseline, spacing: NotchStyle.Space.xxs) {
+                Text(number)
+                    .font(NotchStyle.Font.display)
+                    .tracking(-0.5)
                     .foregroundStyle(NotchStyle.Palette.primaryText)
-                    .lineLimit(1)
-                    .frame(width: NotchStyle.StatRow.valueWidth, alignment: .trailing)
+                Text(unit)
+                    .font(NotchStyle.Font.title)
+                    .foregroundStyle(NotchStyle.Palette.secondaryText)
             }
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            graphic()
         }
-        .padding(.vertical, NotchStyle.Space.s)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(title)
-        .accessibilityValue(spokenValue ?? value)
+        .accessibilityValue(value)
+    }
+
+    /// "12.1 GB" -> ("12.1", "GB"); "25%" -> ("25", "%").
+    static func split(_ value: String) -> (String, String) {
+        if value.hasSuffix("%") { return (String(value.dropLast()), "%") }
+        guard let space = value.lastIndex(of: " ") else { return (value, "") }
+        return (String(value[..<space]), String(value[value.index(after: space)...]))
     }
 }

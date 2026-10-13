@@ -128,55 +128,76 @@ struct KeepAwakePanel: View {
     @ObservedObject var settings: AppSettings
 
     var body: some View {
-        HStack(spacing: NotchStyle.Space.xl) {
-            Button {
+        KeepAwakeContent(
+            isActive: keepAwake.isActive,
+            endsAt: keepAwake.endsAt,
+            displayOn: settings.keepAwakeDisplayOn,
+            onToggle: {
                 if keepAwake.isActive {
                     keepAwake.turnOff()
                 } else {
                     keepAwake.turnOn(for: .indefinitely)
                 }
-            } label: {
-                Image(systemName: keepAwake.isActive ? "cup.and.saucer.fill" : "cup.and.saucer")
-                    .font(.system(size: NotchStyle.KeepAwake.symbolSize))
-                    .foregroundStyle(keepAwake.isActive ? NotchStyle.Palette.background : NotchStyle.Palette.primaryText)
+            },
+            onChoose: { keepAwake.turnOn(for: $0) },
+            onDisplayOn: {
+                settings.keepAwakeDisplayOn = $0
+                keepAwake.applyDisplaySetting()
+            }
+        )
+    }
+}
+
+/// One centred column: the big switch, what it means right now, and the
+/// quick durations. From plain values so it can be drawn with sample data.
+struct KeepAwakeContent: View {
+    let isActive: Bool
+    let endsAt: Date?
+    let displayOn: Bool
+    let onToggle: () -> Void
+    let onChoose: (KeepAwakeDuration) -> Void
+    let onDisplayOn: (Bool) -> Void
+
+    var body: some View {
+        VStack(spacing: NotchStyle.Space.m) {
+            Button(action: onToggle) {
+                Image(systemName: isActive ? "cup.and.saucer.fill" : "cup.and.saucer")
+                    .font(.system(size: NotchStyle.KeepAwake.symbolSize, weight: .medium))
+                    .foregroundStyle(isActive ? NotchStyle.Palette.background : NotchStyle.Palette.primaryText)
                     .frame(width: NotchStyle.KeepAwake.buttonSize, height: NotchStyle.KeepAwake.buttonSize)
-                    .background(Circle().fill(keepAwake.isActive ? NotchStyle.Palette.accent : NotchStyle.Palette.selection))
+                    .background(Circle().fill(isActive ? NotchStyle.Palette.accent : NotchStyle.Palette.selection))
                     .contentShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(keepAwake.isActive ? "Turn off Keep Awake" : "Keep the Mac awake")
+            .accessibilityLabel(isActive ? "Turn off Keep Awake" : "Keep the Mac awake")
 
-            VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
-                Text(keepAwake.isActive ? "Staying awake" : "Sleeping as usual")
+            VStack(spacing: NotchStyle.Space.xxs) {
+                Text(isActive ? "Staying awake" : "Sleeping as usual")
                     .font(NotchStyle.Font.title)
                     .foregroundStyle(NotchStyle.Palette.primaryText)
                 Text(status)
                     .font(NotchStyle.Font.subtitle)
                     .foregroundStyle(NotchStyle.Palette.secondaryText)
-                HStack(spacing: NotchStyle.Space.xs) {
-                    ForEach(KeepAwakeDuration.allCases.filter { $0 != .indefinitely }) { duration in
-                        Button(duration.title) { keepAwake.turnOn(for: duration) }
-                            .buttonStyle(ChipButtonStyle())
-                    }
-                }
-                Toggle("Keep the display on too", isOn: Binding(
-                    get: { settings.keepAwakeDisplayOn },
-                    set: {
-                        settings.keepAwakeDisplayOn = $0
-                        keepAwake.applyDisplaySetting()
-                    }
-                ))
-                .toggleStyle(.checkbox)
-                .font(NotchStyle.Font.caption)
-                .foregroundStyle(NotchStyle.Palette.secondaryText)
             }
-            Spacer(minLength: 0)
+
+            HStack(spacing: NotchStyle.Space.xs) {
+                ForEach(KeepAwakeDuration.allCases.filter { $0 != .indefinitely }) { duration in
+                    Button(duration.title) { onChoose(duration) }
+                        .buttonStyle(ChipButtonStyle())
+                }
+                Toggle("Display on too", isOn: Binding(get: { displayOn }, set: onDisplayOn))
+                    .toggleStyle(.checkbox)
+                    .font(NotchStyle.Font.caption)
+                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+                    .padding(.leading, NotchStyle.Space.s)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var status: String {
-        guard keepAwake.isActive else { return "Your Mac sleeps on its normal schedule." }
-        guard let endsAt = keepAwake.endsAt else { return "Until you turn it off." }
+        guard isActive else { return "Your Mac sleeps on its normal schedule." }
+        guard let endsAt else { return "Until you turn it off." }
         return "Until \(endsAt.formatted(date: .omitted, time: .shortened))."
     }
 }

@@ -3,13 +3,17 @@ import SwiftUI
 
 // MARK: Calendar
 
-/// The Calendar tool: what's left of today, and tomorrow.
+/// The Calendar tool: the whole month on the left, the chosen day's events
+/// on the right. Opens on today.
 struct CalendarPanel: View {
     @ObservedObject var calendar: CalendarService
 
     var body: some View {
         content
-            .onAppear { calendar.reload() }
+            .onAppear {
+                calendar.showToday()
+                calendar.reload()
+            }
     }
 
     @ViewBuilder
@@ -18,8 +22,8 @@ struct CalendarPanel: View {
         case .notAsked:
             PermissionPrompt(
                 symbol: "calendar",
-                title: "See your day at a glance",
-                message: "Show today's and tomorrow's events here. They stay on your Mac.",
+                title: "See your month at a glance",
+                message: "Show your calendar and events here. They stay on your Mac.",
                 buttonTitle: "Allow Calendar Access",
                 action: { calendar.requestAccess() }
             )
@@ -33,30 +37,199 @@ struct CalendarPanel: View {
             )
         case .granted:
             TimelineView(.everyMinute) { context in
-                let sections = Agenda.sections(calendar.events, now: context.date, calendar: .current)
-                if sections.isEmpty {
-                    EmptyToolState(symbol: "calendar", title: "Nothing scheduled", message: "Today and tomorrow are free.")
-                } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
-                            ForEach(sections) { section in
-                                Text(section.title.uppercased())
-                                    .font(NotchStyle.Font.caption)
-                                    .foregroundStyle(NotchStyle.Palette.secondaryText)
-                                ForEach(section.events) { event in
-                                    EventRow(
-                                        event: event,
-                                        isNow: event.isHappening(at: context.date),
-                                        onOpen: { calendar.open(event) },
-                                        onJoin: { calendar.join(event) }
-                                    )
-                                }
-                            }
+                CalendarContent(
+                    grid: calendar.grid,
+                    today: Calendar.current.startOfDay(for: context.date),
+                    now: context.date,
+                    selectedDay: calendar.selectedDay,
+                    events: calendar.monthEvents,
+                    onSelect: { calendar.select($0) },
+                    onShowMonth: { calendar.showMonth(offset: $0) },
+                    onShowToday: { calendar.showToday() },
+                    onOpen: { calendar.open($0) },
+                    onJoin: { calendar.join($0) }
+                )
+            }
+        }
+    }
+}
+
+/// The month grid and the day's agenda, from plain values so it can also be
+/// drawn with sample data.
+struct CalendarContent: View {
+    let grid: MonthGrid
+    let today: Date
+    let now: Date
+    let selectedDay: Date
+    let events: [AgendaEvent]
+    let onSelect: (Date) -> Void
+    let onShowMonth: (Int) -> Void
+    let onShowToday: () -> Void
+    let onOpen: (AgendaEvent) -> Void
+    let onJoin: (AgendaEvent) -> Void
+
+    var body: some View {
+        let calendar = Calendar.current
+        HStack(alignment: .top, spacing: NotchStyle.Space.xl) {
+            MonthCalendar(
+                grid: grid,
+                today: today,
+                selectedDay: selectedDay,
+                busyDays: events.busyDays(calendar: calendar),
+                onSelect: onSelect,
+                onShowMonth: onShowMonth,
+                onShowToday: onShowToday
+            )
+            DayAgenda(
+                title: Self.title(for: selectedDay, today: today, calendar: calendar),
+                events: events.on(day: selectedDay, calendar: calendar),
+                now: now,
+                onOpen: onOpen,
+                onJoin: onJoin
+            )
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    /// "Today", "Tomorrow", "Yesterday", or "Wednesday 14 October".
+    static func title(for day: Date, today: Date, calendar: Calendar) -> String {
+        let offset = calendar.dateComponents([.day], from: today, to: day).day ?? 0
+        switch offset {
+        case 0: return "Today"
+        case 1: return "Tomorrow"
+        case -1: return "Yesterday"
+        default: return day.formatted(.dateTime.weekday(.wide).day().month(.wide))
+        }
+    }
+}
+
+/// A compact month: title with arrows, weekday initials, and the days.
+/// Today is a white disc; the chosen day a grey one; a dot marks days with events.
+private struct MonthCalendar: View {
+    let grid: MonthGrid
+    let today: Date
+    let selectedDay: Date
+    let busyDays: Set<Date>
+    let onSelect: (Date) -> Void
+    let onShowMonth: (Int) -> Void
+    let onShowToday: () -> Void
+
+    private let cell = NotchStyle.MonthGrid.cell
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
+            HStack(spacing: 0) {
+                Button(action: onShowToday) {
+                    Text(grid.monthStart.formatted(.dateTime.month(.wide).year()))
+                        .font(NotchStyle.Font.title)
+                        .foregroundStyle(NotchStyle.Palette.primaryText)
+                }
+                .buttonStyle(.plain)
+                .help("Go to today")
+                Spacer(minLength: NotchStyle.Space.xs)
+                IconButton(symbol: "chevron.left", label: "Previous month") { onShowMonth(-1) }
+                IconButton(symbol: "chevron.right", label: "Next month") { onShowMonth(1) }
+            }
+            .frame(width: cell.width * 7)
+
+            HStack(spacing: 0) {
+                ForEach(Array(grid.weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
+                    Text(symbol)
+                        .font(NotchStyle.Font.caption)
+                        .foregroundStyle(NotchStyle.Palette.tertiaryText)
+                        .frame(width: cell.width)
+                }
+            }
+            .accessibilityHidden(true)
+
+            VStack(spacing: 0) {
+                ForEach(0..<grid.rowCount, id: \.self) { row in
+                    HStack(spacing: 0) {
+                        ForEach(grid.days[(row * 7)..<(row * 7 + 7)]) { day in
+                            dayCell(day)
                         }
                     }
                 }
             }
         }
+    }
+
+    private func dayCell(_ day: MonthDay) -> some View {
+        let isToday = day.date == today
+        let isSelected = day.date == selectedDay
+        let isBusy = busyDays.contains(day.date)
+        return Button {
+            onSelect(day.date)
+        } label: {
+            Text("\(day.dayNumber)")
+                .font(NotchStyle.Font.monthDay.weight(isToday ? .bold : .regular))
+                .foregroundStyle(
+                    isToday ? NotchStyle.Palette.background
+                        : (day.isInMonth ? NotchStyle.Palette.primaryText : NotchStyle.Palette.tertiaryText.opacity(0.6))
+                )
+                .frame(width: NotchStyle.MonthGrid.disc, height: NotchStyle.MonthGrid.disc)
+                .background(
+                    Circle().fill(
+                        isToday ? NotchStyle.Palette.fill
+                            : (isSelected ? NotchStyle.Palette.selection : Color.clear)
+                    )
+                )
+                .overlay(alignment: .bottom) {
+                    if isBusy {
+                        Circle()
+                            .fill(isToday ? NotchStyle.Palette.background : NotchStyle.Palette.accent)
+                            .frame(width: NotchStyle.MonthGrid.dot, height: NotchStyle.MonthGrid.dot)
+                            .offset(y: -NotchStyle.Space.xxs)
+                    }
+                }
+                .frame(width: cell.width, height: cell.height)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(day.date.formatted(date: .complete, time: .omitted) + (isBusy ? ", has events" : ""))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+/// The chosen day's events on a slightly lighter field.
+private struct DayAgenda: View {
+    let title: String
+    let events: [AgendaEvent]
+    let now: Date
+    let onOpen: (AgendaEvent) -> Void
+    let onJoin: (AgendaEvent) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
+            Text(title)
+                .font(NotchStyle.Font.title)
+                .foregroundStyle(NotchStyle.Palette.primaryText)
+                .lineLimit(1)
+            if events.isEmpty {
+                Spacer(minLength: 0)
+                Text("Nothing scheduled")
+                    .font(NotchStyle.Font.body)
+                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+                    .frame(maxWidth: .infinity)
+                Spacer(minLength: 0)
+            } else {
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
+                        ForEach(events) { event in
+                            EventRow(
+                                event: event,
+                                isNow: event.isHappening(at: now),
+                                onOpen: { onOpen(event) },
+                                onJoin: { onJoin(event) }
+                            )
+                            .opacity(event.end <= now ? 0.5 : 1)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .notchCard()
     }
 }
 

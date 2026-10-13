@@ -187,3 +187,97 @@ public enum ReminderOrder {
         .map(\.element)
     }
 }
+
+/// One cell of the month calendar.
+public struct MonthDay: Identifiable, Hashable, Sendable {
+    /// Midnight at the start of this day.
+    public let date: Date
+    public let dayNumber: Int
+    /// False for the leading and trailing days of the neighbouring months.
+    public let isInMonth: Bool
+    public var id: Date { date }
+}
+
+/// The days shown for a month: whole weeks starting on the calendar's first
+/// weekday, so the grid always has 7 columns and 4 to 6 rows.
+public struct MonthGrid: Hashable, Sendable {
+    /// Midnight on the first day of the month.
+    public let monthStart: Date
+    public let days: [MonthDay]
+    /// Short weekday names in column order, e.g. ["M", "T", "W", ...].
+    public let weekdaySymbols: [String]
+
+    public init(containing date: Date, calendar: Calendar) {
+        let start = calendar.dateInterval(of: .month, for: date)?.start ?? calendar.startOfDay(for: date)
+        monthStart = start
+        let month = calendar.component(.month, from: start)
+        let dayCount = calendar.range(of: .day, in: .month, for: start)?.count ?? 30
+
+        // How many days of the previous month lead into the first row.
+        let firstWeekday = calendar.component(.weekday, from: start)
+        let leading = (firstWeekday - calendar.firstWeekday + 7) % 7
+        let cells = Int(((Double(leading + dayCount)) / 7).rounded(.up)) * 7
+
+        var days: [MonthDay] = []
+        days.reserveCapacity(cells)
+        for offset in 0..<cells {
+            guard let day = calendar.date(byAdding: .day, value: offset - leading, to: start) else { continue }
+            days.append(MonthDay(
+                date: day,
+                dayNumber: calendar.component(.day, from: day),
+                isInMonth: calendar.component(.month, from: day) == month
+            ))
+        }
+        self.days = days
+
+        let symbols = calendar.veryShortStandaloneWeekdaySymbols
+        let first = calendar.firstWeekday - 1
+        weekdaySymbols = Array(symbols[first...] + symbols[..<first])
+    }
+
+    /// From the first shown day to just after the last, for fetching events.
+    public var interval: DateInterval {
+        let start = days.first?.date ?? monthStart
+        let end = days.last.map { $0.date.addingTimeInterval(86_400) } ?? monthStart
+        return DateInterval(start: start, end: max(start, end))
+    }
+
+    public var rowCount: Int { days.count / 7 }
+
+    /// The same grid for the month before (-1) or after (+1).
+    public func shifted(by months: Int, calendar: Calendar) -> MonthGrid {
+        let target = calendar.date(byAdding: .month, value: months, to: monthStart) ?? monthStart
+        return MonthGrid(containing: target, calendar: calendar)
+    }
+}
+
+extension Array where Element == AgendaEvent {
+    /// The events that touch the given day (all-day events first, then by
+    /// start time). Multi-day events appear on every day they cover.
+    public func on(day: Date, calendar: Calendar) -> [AgendaEvent] {
+        let start = calendar.startOfDay(for: day)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return [] }
+        return filter { ($0.start < end && $0.end > start) || ($0.start == start && $0.end == start) }
+            .sorted { lhs, rhs in
+                if lhs.isAllDay != rhs.isAllDay { return lhs.isAllDay }
+                return lhs.start < rhs.start
+            }
+    }
+
+    /// Midnights of the days that have at least one event.
+    public func busyDays(calendar: Calendar) -> Set<Date> {
+        var days = Set<Date>()
+        for event in self {
+            var day = calendar.startOfDay(for: event.start)
+            // Cap long events so a year-long one can't spin for ever.
+            var count = 0
+            repeat {
+                days.insert(day)
+                guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+                day = next
+                count += 1
+            } while day < event.end && count < 62
+        }
+        return days
+    }
+}

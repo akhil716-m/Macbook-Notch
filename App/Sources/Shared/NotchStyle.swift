@@ -51,10 +51,8 @@ enum NotchStyle {
         static let shadow = Color.black.opacity(0.45)
         /// Selected tab, selected pill.
         static let selection = Color.white.opacity(0.16)
-        /// Cards and rows.
-        static let rowBackground = Color.white.opacity(0.06)
-        /// The hairline round cards, inputs and secondary buttons.
-        static let border = Color.white.opacity(0.10)
+        /// Cards and rows: one step lighter than the panel.
+        static let rowBackground = Color.white.opacity(0.07)
         /// Secondary round buttons and the sent chat bubble.
         static let raised = Color.white.opacity(0.24)
         static let dropOutline = Color.white.opacity(0.7)
@@ -77,6 +75,7 @@ enum NotchStyle {
         static let emptyBody = SwiftUI.Font.system(size: 12)
         static let tab = SwiftUI.Font.system(size: 15, weight: .medium)
         static let rowTitle = SwiftUI.Font.system(size: 13)
+        static let monthDay = SwiftUI.Font.system(size: 12).monospacedDigit()
         static let tileName = SwiftUI.Font.system(size: 11)
         static let body = SwiftUI.Font.system(size: 13)
         static let chip = SwiftUI.Font.system(size: 12, weight: .medium)
@@ -94,11 +93,10 @@ enum NotchStyle {
         static let horizontalPadding: CGFloat = 10
     }
 
-    /// Dark grey containers with a hairline border.
+    /// Dark grey fields, one tone step above the panel.
     enum Card {
         static let radius: CGFloat = 12
         static let padding: CGFloat = 12
-        static let border: CGFloat = 1
     }
 
     /// The Timer / Stopwatch style switch.
@@ -129,16 +127,22 @@ enum NotchStyle {
         static let iconHit: CGFloat = 24
     }
 
+    enum MonthGrid {
+        static let cell = CGSize(width: 28, height: 22)
+        static let disc: CGFloat = 21
+        static let dot: CGFloat = 3
+    }
+
     enum Agenda {
         static let colorBarWidth: CGFloat = 3
         static let timeColumn: CGFloat = 52
     }
 
     enum Weather {
-        static let symbolSize: CGFloat = 34
-        static let temperature = SwiftUI.Font.system(size: 32, weight: .light).monospacedDigit()
-        static let daySymbolSize: CGFloat = 14
-        static let dayColumn: CGFloat = 46
+        static let symbolSize: CGFloat = 36
+        static let temperature = SwiftUI.Font.system(size: 48, weight: .light).monospacedDigit()
+        static let daySymbolSize: CGFloat = 18
+        static let nowColumn: CGFloat = 196
     }
 
     enum Ask {
@@ -168,15 +172,14 @@ enum NotchStyle {
         static let ringSymbol: CGFloat = 9
     }
 
-    enum StatRow {
-        static let iconWidth: CGFloat = 16
-        static let labelWidth: CGFloat = 84
-        static let valueWidth: CGFloat = 92
+    /// The large numbers in System.
+    enum Readout {
+        static let graphicHeight: CGFloat = 30
     }
 
     enum KeepAwake {
-        static let buttonSize: CGFloat = 56
-        static let symbolSize: CGFloat = 24
+        static let buttonSize: CGFloat = 64
+        static let symbolSize: CGFloat = 26
     }
 
     // MARK: Header

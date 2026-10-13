@@ -61,18 +61,15 @@ private struct UsageCard<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
-            Text(title.uppercased())
-                .font(NotchStyle.Font.caption)
-                .foregroundStyle(NotchStyle.Palette.secondaryText)
+            Text(title)
+                .font(NotchStyle.Font.title)
+                .foregroundStyle(NotchStyle.Palette.primaryText)
             content()
             Spacer(minLength: 0)
         }
-        .padding(NotchStyle.Space.m)
+        .padding(NotchStyle.Card.padding)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(
-            RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                .fill(NotchStyle.Palette.rowBackground)
-        )
+        .background(NotchCardBackground())
         .accessibilityElement(children: .combine)
     }
 }
