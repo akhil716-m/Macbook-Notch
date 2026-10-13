@@ -1,12 +1,12 @@
 feature,area,priority,original,clone,notes
-Notch-shaped panel over the hardware notch,shell,must,yes,no,borderless always-on-top window above the menu bar
-Hover to expand / leave to collapse with spring animation,shell,must,yes,no,click to open too (SaaSCity)
-Floating notch on Macs without a notch and on external displays,shell,must,yes,no,
-Live compact activity in the closed notch,shell,must,yes,no,music / timer / shelf badge; exact look not seen
+Notch-shaped panel over the hardware notch,shell,must,yes,partial,borderless always-on-top window above the menu bar; M0: built; needs a check on a real MacBook
+Hover to expand / leave to collapse with spring animation,shell,must,yes,partial,click to open too (SaaSCity); M0: hover + click to open; needs a feel pass on a real Mac
+Floating notch on Macs without a notch and on external displays,shell,must,yes,partial,M0: floating notch on the main screen only; no multi-display setting yet
+Live compact activity in the closed notch,shell,must,yes,partial,music / timer / shelf badge; exact look not seen; M0: music only (artwork + equaliser)
 Tool switcher inside the expanded panel,shell,must,yes,no,layout not seen
 Settings window (enable and reorder tools; hover behaviour; launch at login),shell,must,yes,no,contents not seen
-Menu bar / app lifecycle (no Dock icon; launch at login),shell,must,yes,no,guess
-Now Playing with album art scrubbing and controls,media,must,yes,no,needs a deliberate Now Playing API choice
+Menu bar / app lifecycle (no Dock icon; launch at login),shell,must,yes,partial,guess; M0
+Now Playing with album art scrubbing and controls,media,must,yes,partial,needs a deliberate Now Playing API choice; M0: Music + Spotify via AppleScript; browsers not covered
 File shelf: drag files onto the notch,files,must,yes,no,NotchDrop baseline
 AirDrop from the shelf,files,must,yes,no,
 Shelf retention window (default 1 day; configurable) and ⌥-click delete,files,must,yes,no,NotchDrop baseline
