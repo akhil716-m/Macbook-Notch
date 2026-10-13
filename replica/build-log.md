@@ -110,3 +110,17 @@ unlocked) and the update menu item is hidden, so test builds keep working.
 
 With 23 tools, most now sit in the overflow menu. The tab bar needs a
 rethink in the design pass (favourites, or a grid home screen).
+
+## First run on a real Mac (2026-10-13)
+
+MacBook on macOS 27.0.1, Apple silicon.
+
+- Gatekeeper blocks the unsigned build; right-click › Open no longer bypasses
+  it, so the README now says to use Open Anyway or `xattr`. Goes away with a
+  Developer ID signature and notarisation.
+- The app launches and runs. **Hover over the notch opens the panel: S01/S03
+  confirmed.**
+- A suspected crash (hardened runtime + ad-hoc signed Sparkle) turned out not
+  to be real: a hardened ad-hoc copy launched fine on CI. That change was
+  reverted. CI now verifies the signature and launches the app for 10 seconds
+  on every build.
