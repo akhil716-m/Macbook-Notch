@@ -59,6 +59,10 @@ public struct NotchLayout: Equatable, Sendable {
     public let openSize: CGSize
     public let wingWidth: CGFloat
     public let windowMargin: CGFloat
+    /// How far down the open panel's content must start to clear both the
+    /// notch and the menu bar. On some Macs the menu bar is taller than the
+    /// notch and covers anything drawn beside or just below it.
+    public let contentTop: CGFloat
 
     public init(hardware: NotchHardware, openSize: CGSize, wingWidth: CGFloat, windowMargin: CGFloat) {
         let frame = hardware.screenFrame
@@ -84,6 +88,7 @@ public struct NotchLayout: Equatable, Sendable {
             let width = Self.fallbackNotchSize.width
             notchRect = CGRect(x: frame.midX - width / 2, y: frame.maxY - height, width: width, height: height)
         }
+        contentTop = max(notchRect.height, hardware.menuBarHeight)
     }
 
     public var notchSize: CGSize { notchRect.size }

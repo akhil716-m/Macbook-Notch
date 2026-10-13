@@ -54,10 +54,9 @@ struct NotchRootView: View {
         case .open:
             let selected = settings.tools.resolvedSelection(settings.selectedTool) ?? .nowPlaying
             VStack(spacing: 0) {
-                // The strip level with the notch stays empty: the camera
-                // housing and the menu bar share it, so nothing there is
-                // reliably visible.
-                Color.clear.frame(height: model.layout.notchSize.height)
+                // Nothing goes level with the notch or the menu bar: the
+                // camera housing and the menu bar can cover it.
+                Color.clear.frame(height: model.layout.contentTop + NotchStyle.Space.s)
                 ToolTabBar(
                     tools: settings.tools.enabled,
                     selected: selected,

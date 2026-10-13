@@ -21,6 +21,17 @@ final class NotchLayoutTests: XCTestCase {
         XCTAssertEqual(l.notchRect, CGRect(x: 664, y: 950, width: 184, height: 32))
     }
 
+    func testContentStartsBelowTheNotchAndTheMenuBar() {
+        XCTAssertEqual(layout(macBookPro14).contentTop, 32)
+        // A MacBook whose menu bar is taller than its notch.
+        var air = macBookPro14
+        air.menuBarHeight = 37
+        XCTAssertEqual(layout(air).contentTop, 37)
+        // Menu bar hidden (full-screen app): just the notch.
+        air.menuBarHeight = 0
+        XCTAssertEqual(layout(air).contentTop, 32)
+    }
+
     func testShapeSizes() {
         let l = layout(macBookPro14)
         XCTAssertEqual(l.shapeSize(for: .closed), CGSize(width: 184, height: 32))
