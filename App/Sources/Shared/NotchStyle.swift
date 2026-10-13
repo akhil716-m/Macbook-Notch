@@ -128,8 +128,9 @@ enum NotchStyle {
     }
 
     enum MonthGrid {
-        static let cell = CGSize(width: 28, height: 22)
-        static let disc: CGFloat = 21
+        /// Six rows of these fit the panel: the disc on top, the dot under it.
+        static let cell = CGSize(width: 28, height: 23)
+        static let disc: CGFloat = 19
         static let dot: CGFloat = 3
     }
 
@@ -139,8 +140,8 @@ enum NotchStyle {
     }
 
     enum Weather {
-        static let symbolSize: CGFloat = 36
-        static let temperature = SwiftUI.Font.system(size: 48, weight: .light).monospacedDigit()
+        static let symbolSize: CGFloat = 40
+        static let temperature = SwiftUI.Font.system(size: 56, weight: .light).monospacedDigit()
         static let daySymbolSize: CGFloat = 18
         static let nowColumn: CGFloat = 196
     }

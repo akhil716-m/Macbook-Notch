@@ -41,15 +41,42 @@ Tab bar (ToolTabBar)
 
 ```
 Card (notchCard / NotchCardBackground)
-  tokens    fill surface (white 6%), 1 pt border (white 10%), radius 12, padding 12
-  variants  large (radius 16, padding 14) for Now Playing
-  used on   Converter, System, Now Playing, Timers rows
+  tokens    fill surface (white 7%), radius 12, padding 12; no outline, no shadow:
+            set apart by a tone step only (taste house rule)
+  variants  large (radius 16, padding 14) for Now Playing, System, Weather week
+  used on   Converter, System, Now Playing, Timers rows, Calendar agenda, Weather week
 
-Stat row (StatRow)                       App/Sources/SystemStats/SystemStatsPanel.swift
-  layout    icon 16 | name 84, one line (secondary) | graphic (fills) | value 92 right (caption/600)
-  states    value may be empty when the graphic carries it (network, sparkline)
-  a11y      one element: name + value, or spokenValue for graphic-only rows
-  used on   System; rows separated by a hairline divider
+Readout (SystemReadouts)                 App/Sources/SystemStats/SystemStatsPanel.swift
+  layout    three columns on one large card, centred in the panel:
+            label with symbol (13, secondary) / number (36, tracking -0.5) + unit (15,
+            secondary) / one line of context 30 pt tall (sparkline, meter + "of 16 GB",
+            upload rate)
+  a11y      each column is one element: title + value
+
+Month calendar (MonthCalendar)           App/Sources/Calendar/CalendarPanels.swift
+  layout    "October 2026" (15/600, click = today) + previous / next arrows;
+            weekday initials (11, tertiary); 7 x 4-6 grid of 28 x 23 cells
+  states    today: white disc, black bold number; chosen day: grey disc;
+            other month: tertiary at 60%; day with events: 3 pt accent dot under the disc
+  a11y      each day is a button: full date + "has events"; .isSelected on the chosen day
+  logic     MonthGrid / [AgendaEvent].on(day:) / busyDays in NotchCore (tested)
+
+Day agenda (DayAgenda)
+  layout    card beside the month: "Today" / "Tomorrow" / "Wednesday 14 October"
+            (15/600), then event rows; scrolls only when the day doesn't fit
+  states    past events at 50%; "Now" in green; Join chip for meeting links;
+            empty: "Nothing scheduled", centred
+
+Weather (WeatherForecastView)            App/Sources/Weather/WeatherPanel.swift
+  layout    now (196 pt): place (click = change) + refresh; symbol 40 + temperature
+            56 light; condition 15/600; "Feels like · H L" tertiary.
+            Week: 7 equal columns on a large card: day (Today in 600), multicolour
+            symbol 18, high 13/600, low 11 tertiary
+  states    offline note in danger beside the place
+
+Keep Awake (KeepAwakeContent)            App/Sources/Productivity/ProductivityPanels.swift
+  layout    one centred column: 64 pt switch (accent when on), title, status,
+            duration chips + "Screen on" toggle chip
 ```
 
 ## Controls

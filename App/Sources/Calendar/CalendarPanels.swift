@@ -174,15 +174,13 @@ private struct MonthCalendar: View {
                             : (isSelected ? NotchStyle.Palette.selection : Color.clear)
                     )
                 )
+                .frame(width: cell.width, height: cell.height, alignment: .top)
                 .overlay(alignment: .bottom) {
-                    if isBusy {
-                        Circle()
-                            .fill(isToday ? NotchStyle.Palette.background : NotchStyle.Palette.accent)
-                            .frame(width: NotchStyle.MonthGrid.dot, height: NotchStyle.MonthGrid.dot)
-                            .offset(y: -NotchStyle.Space.xxs)
-                    }
+                    // Under the disc, so it never touches the number.
+                    Circle()
+                        .fill(isBusy ? NotchStyle.Palette.accent : Color.clear)
+                        .frame(width: NotchStyle.MonthGrid.dot, height: NotchStyle.MonthGrid.dot)
                 }
-                .frame(width: cell.width, height: cell.height)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -213,23 +211,29 @@ private struct DayAgenda: View {
                     .frame(maxWidth: .infinity)
                 Spacer(minLength: 0)
             } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
-                        ForEach(events) { event in
-                            EventRow(
-                                event: event,
-                                isNow: event.isHappening(at: now),
-                                onOpen: { onOpen(event) },
-                                onJoin: { onJoin(event) }
-                            )
-                            .opacity(event.end <= now ? 0.5 : 1)
-                        }
-                    }
+                // Scroll only when the day doesn't fit.
+                ViewThatFits(in: .vertical) {
+                    list
+                    ScrollView(.vertical, showsIndicators: false) { list }
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .notchCard()
+    }
+
+    private var list: some View {
+        VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
+            ForEach(events) { event in
+                EventRow(
+                    event: event,
+                    isNow: event.isHappening(at: now),
+                    onOpen: { onOpen(event) },
+                    onJoin: { onJoin(event) }
+                )
+                .opacity(event.end <= now ? 0.5 : 1)
+            }
+        }
     }
 }
 

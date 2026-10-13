@@ -185,11 +185,17 @@ struct KeepAwakeContent: View {
                     Button(duration.title) { onChoose(duration) }
                         .buttonStyle(ChipButtonStyle())
                 }
-                Toggle("Display on too", isOn: Binding(get: { displayOn }, set: onDisplayOn))
-                    .toggleStyle(.checkbox)
-                    .font(NotchStyle.Font.caption)
-                    .foregroundStyle(NotchStyle.Palette.secondaryText)
-                    .padding(.leading, NotchStyle.Space.s)
+                Button {
+                    onDisplayOn(!displayOn)
+                } label: {
+                    Label("Screen on", systemImage: "display")
+                        .labelStyle(.titleAndIcon)
+                }
+                .buttonStyle(ChipButtonStyle(isProminent: displayOn))
+                .padding(.leading, NotchStyle.Space.s)
+                .help("Keep the display on too, not just the Mac")
+                .accessibilityLabel("Keep the display on too")
+                .accessibilityAddTraits(displayOn ? .isSelected : [])
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -197,8 +203,8 @@ struct KeepAwakeContent: View {
 
     private var status: String {
         guard isActive else { return "Your Mac sleeps on its normal schedule." }
-        guard let endsAt else { return "Until you turn it off." }
-        return "Until \(endsAt.formatted(date: .omitted, time: .shortened))."
+        guard let endsAt else { return "Until you turn it off" }
+        return "Until \(endsAt.formatted(date: .omitted, time: .shortened))"
     }
 }
 
