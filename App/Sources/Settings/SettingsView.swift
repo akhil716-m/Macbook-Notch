@@ -79,6 +79,15 @@ private struct GeneralSettings: View {
                 }
             }
 
+            Section {
+                ScreenInfo()
+            } header: {
+                Text("This screen")
+            } footer: {
+                Text("If the notch looks misplaced, send a screenshot of this section.")
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Updates") {
                 LabeledContent("Version", value: UpdateService.versionDescription)
                 if updates.isConfigured {
@@ -271,6 +280,24 @@ private struct AppLabel: View {
             }
         } else {
             Text(bundleID).foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// The measurements the notch layout is based on, for troubleshooting.
+private struct ScreenInfo: View {
+    var body: some View {
+        let screen = NSScreen.screens.first(where: { $0.safeAreaInsets.top > 0 }) ?? NSScreen.main
+        if let screen {
+            let left = screen.auxiliaryTopLeftArea?.width
+            let right = screen.auxiliaryTopRightArea?.width
+            let notchWidth = left.flatMap { l in right.map { r in screen.frame.width - l - r } }
+            LabeledContent("Screen", value: "\(Int(screen.frame.width)) × \(Int(screen.frame.height)) pt")
+            LabeledContent("Notch", value: notchWidth.map { "\(Int($0)) × \(Int(screen.safeAreaInsets.top)) pt" } ?? "None (floating notch)")
+            LabeledContent("Menu bar", value: "\(Int(screen.frame.maxY - screen.visibleFrame.maxY)) pt")
+            LabeledContent("macOS", value: ProcessInfo.processInfo.operatingSystemVersionString)
+        } else {
+            Text("No screen found").foregroundStyle(.secondary)
         }
     }
 }

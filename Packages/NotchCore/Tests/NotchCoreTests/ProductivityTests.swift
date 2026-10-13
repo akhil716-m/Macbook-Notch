@@ -126,27 +126,6 @@ final class ProductivityTests: XCTestCase {
         XCTAssertEqual(Scratchpad().wordCount, 0)
     }
 
-    // MARK: Tab strip
-
-    func testTabsFillLeftThenRight() {
-        // 150 pt per side, 26 pt tabs, 2 pt gaps: 5 fit on the left.
-        let layout = TabStripLayout.split(count: 8, sideWidth: 150, tabWidth: 26, spacing: 2, rightReserved: 28)
-        XCTAssertEqual(layout, TabStripLayout(left: 5, right: 3, overflow: 0))
-    }
-
-    func testTooManyTabsOverflowIntoAMenu() {
-        let layout = TabStripLayout.split(count: 20, sideWidth: 150, tabWidth: 26, spacing: 2, rightReserved: 28)
-        // Right side has room for 4; one becomes the overflow button.
-        XCTAssertEqual(layout, TabStripLayout(left: 5, right: 3, overflow: 12))
-    }
-
-    func testFewTabsStayLeft() {
-        XCTAssertEqual(
-            TabStripLayout.split(count: 3, sideWidth: 150, tabWidth: 26, spacing: 2, rightReserved: 28),
-            TabStripLayout(left: 3, right: 0, overflow: 0)
-        )
-    }
-
     func testKeepAwakeDurations() {
         XCTAssertEqual(KeepAwakeDuration.oneHour.interval, 3_600)
         XCTAssertNil(KeepAwakeDuration.indefinitely.interval)

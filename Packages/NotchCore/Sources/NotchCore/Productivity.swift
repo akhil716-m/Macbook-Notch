@@ -116,33 +116,3 @@ public enum KeepAwakeDuration: String, CaseIterable, Codable, Sendable, Identifi
         }
     }
 }
-
-/// Lays out tool tabs on both sides of the notch: as many as fit on the
-/// left, then the right (after the Settings button), then an overflow menu.
-public struct TabStripLayout: Equatable, Sendable {
-    public var left: Int
-    public var right: Int
-    public var overflow: Int
-
-    public static func split(
-        count: Int,
-        sideWidth: CGFloat,
-        tabWidth: CGFloat,
-        spacing: CGFloat,
-        rightReserved: CGFloat
-    ) -> TabStripLayout {
-        func capacity(_ width: CGFloat) -> Int {
-            guard width >= tabWidth else { return 0 }
-            return Int(((width + spacing) / (tabWidth + spacing)).rounded(.down))
-        }
-        let left = min(count, capacity(sideWidth))
-        let remaining = count - left
-        let rightCapacity = capacity(sideWidth - rightReserved)
-        if remaining <= rightCapacity {
-            return TabStripLayout(left: left, right: remaining, overflow: 0)
-        }
-        // One right-hand slot becomes the overflow button.
-        let right = max(0, rightCapacity - 1)
-        return TabStripLayout(left: left, right: right, overflow: remaining - right)
-    }
-}

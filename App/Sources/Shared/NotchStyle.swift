@@ -4,7 +4,7 @@ import SwiftUI
 /// here, so `/replica-design` can replace them in one place.
 enum NotchStyle {
     // MARK: Geometry
-    static let openSize = CGSize(width: 520, height: 190)
+    static let openSize = CGSize(width: 520, height: 222)
     /// Width added on each side of the notch for a live activity.
     static let wingWidth: CGFloat = 44
     /// Room around the open panel for its shadow.
@@ -126,7 +126,8 @@ enum NotchStyle {
     // MARK: Header
     enum Tab {
         static let width: CGFloat = 26
-        static let height: CGFloat = 20
+        static let height: CGFloat = 22
+        static let barHeight: CGFloat = 28
     }
 
     // MARK: Shelf

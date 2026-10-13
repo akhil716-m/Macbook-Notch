@@ -54,15 +54,17 @@ struct NotchRootView: View {
         case .open:
             let selected = settings.tools.resolvedSelection(settings.selectedTool) ?? .nowPlaying
             VStack(spacing: 0) {
-                NotchHeader(
+                // The strip level with the notch stays empty: the camera
+                // housing and the menu bar share it, so nothing there is
+                // reliably visible.
+                Color.clear.frame(height: model.layout.notchSize.height)
+                ToolTabBar(
                     tools: settings.tools.enabled,
                     selected: selected,
-                    notchWidth: model.layout.notchSize.width,
-                    panelWidth: model.layout.shapeSize(for: .open).width,
-                    height: model.layout.notchSize.height,
                     onSelect: { settings.selectedTool = $0 },
                     onOpenSettings: { services.openSettings() }
                 )
+                .padding(.horizontal, NotchStyle.Space.l)
                 Group {
                     if license.allowsUse {
                         toolView(selected)
@@ -181,55 +183,47 @@ struct NotchRootView: View {
     }
 }
 
-/// The strip beside the hardware notch: tool tabs fill the left side, then
-/// the right (before Settings), then an overflow menu. Nothing sits under
-/// the notch itself.
-struct NotchHeader: View {
+/// The row of tool tabs at the top of the open panel. Scrolls sideways when
+/// there are more tools than fit; the selected tool's name and the Settings
+/// button stay put on the right.
+struct ToolTabBar: View {
     let tools: [NotchTool]
     let selected: NotchTool
-    let notchWidth: CGFloat
-    let panelWidth: CGFloat
-    let height: CGFloat
     let onSelect: (NotchTool) -> Void
     let onOpenSettings: () -> Void
 
     var body: some View {
-        let sideWidth = (panelWidth - notchWidth) / 2 - NotchStyle.Space.l - NotchStyle.Space.m
-        let strip = TabStripLayout.split(
-            count: tools.count,
-            sideWidth: sideWidth,
-            tabWidth: NotchStyle.Tab.width,
-            spacing: NotchStyle.Space.xxs,
-            rightReserved: NotchStyle.Tab.width + NotchStyle.Space.xxs
-        )
-        let left = Array(tools.prefix(strip.left))
-        let right = Array(tools.dropFirst(strip.left).prefix(strip.right))
-        let overflow = Array(tools.dropFirst(strip.left + strip.right))
-
-        HStack(spacing: 0) {
-            HStack(spacing: NotchStyle.Space.xxs) {
-                ForEach(left) { tab($0) }
-            }
-            Spacer(minLength: notchWidth + NotchStyle.Space.m * 2)
-            HStack(spacing: NotchStyle.Space.xxs) {
-                ForEach(right) { tab($0) }
-                if !overflow.isEmpty {
-                    overflowMenu(overflow)
+        HStack(spacing: NotchStyle.Space.s) {
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: NotchStyle.Space.xxs) {
+                        ForEach(tools) { tool in
+                            tab(tool).id(tool)
+                        }
+                    }
                 }
-                Button(action: onOpenSettings) {
-                    Image(systemName: "gearshape")
-                        .font(NotchStyle.Font.tab)
-                        .foregroundStyle(NotchStyle.Palette.secondaryText)
-                        .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
-                        .contentShape(Rectangle())
+                .onAppear { proxy.scrollTo(selected, anchor: .center) }
+                .onChange(of: selected) { _, tool in
+                    withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(tool, anchor: .center) }
                 }
-                .buttonStyle(.plain)
-                .help("Settings")
-                .accessibilityLabel("Settings")
             }
+            Text(selected.title)
+                .font(NotchStyle.Font.caption)
+                .foregroundStyle(NotchStyle.Palette.secondaryText)
+                .lineLimit(1)
+                .fixedSize()
+            Button(action: onOpenSettings) {
+                Image(systemName: "gearshape")
+                    .font(NotchStyle.Font.tab)
+                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+                    .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Settings")
+            .accessibilityLabel("Settings")
         }
-        .padding(.horizontal, NotchStyle.Space.l)
-        .frame(height: height)
+        .frame(height: NotchStyle.Tab.barHeight)
     }
 
     private func tab(_ tool: NotchTool) -> some View {
@@ -247,29 +241,6 @@ struct NotchHeader: View {
         .help(tool.title)
         .accessibilityLabel(tool.title)
         .accessibilityAddTraits(tool == selected ? .isSelected : [])
-    }
-
-    private func overflowMenu(_ tools: [NotchTool]) -> some View {
-        let selectedInside = tools.contains(selected)
-        return Menu {
-            ForEach(tools) { tool in
-                Button {
-                    onSelect(tool)
-                } label: {
-                    Label(tool.title, systemImage: tool.symbolName)
-                }
-            }
-        } label: {
-            Image(systemName: selectedInside ? selected.symbolName : "ellipsis")
-                .font(NotchStyle.Font.tab)
-                .foregroundStyle(selectedInside ? NotchStyle.Palette.primaryText : NotchStyle.Palette.secondaryText)
-        }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
-        .background(Capsule().fill(selectedInside ? NotchStyle.Palette.selection : Color.clear))
-        .help("More tools")
-        .accessibilityLabel("More tools")
     }
 }
 

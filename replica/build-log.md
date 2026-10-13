@@ -124,3 +124,9 @@ MacBook on macOS 27.0.1, Apple silicon.
   to be real: a hardened ad-hoc copy launched fine on CI. That change was
   reverted. CI now verifies the signature and launches the app for 10 seconds
   on every build.
+- **Tool tabs were invisible on the real Mac** (screenshot: open panel showed
+  Now Playing, nothing in the strip beside the notch), so no other tool was
+  reachable. The tabs now sit in a scrollable row inside the panel, below
+  the notch strip, which this Mac was already drawing correctly. The strip
+  itself is left empty. Settings › General now shows the screen and notch
+  measurements to help diagnose layout problems.
