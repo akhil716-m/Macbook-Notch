@@ -107,6 +107,14 @@ struct NotchRootView: View {
             AskPanel(ask: services.ask)
         case .aiUsage:
             AIUsagePanel(usage: services.aiUsage)
+        case .teleprompter:
+            TeleprompterPanel(prompter: services.teleprompter)
+        case .mirror:
+            MirrorPanel(camera: services.camera)
+        case .emoji:
+            EmojiPanel(settings: settings)
+        case .converter:
+            ConverterPanel(currency: services.currency)
         }
     }
 

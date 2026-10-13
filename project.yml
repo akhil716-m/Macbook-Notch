@@ -42,6 +42,7 @@ targets:
         NSRemindersUsageDescription: MacbookNotch lists your reminders in the notch and lets you tick them off.
         NSLocationWhenInUseUsageDescription: MacbookNotch uses your approximate location to show local weather.
         NSLocationUsageDescription: MacbookNotch uses your approximate location to show local weather.
+        NSCameraUsageDescription: MacbookNotch shows your camera in the Mirror tool. Nothing is recorded or saved.
         NSHumanReadableCopyright: ""
         # Sparkle updates: fill both in to switch updates on. The key comes
         # from Sparkle's generate_keys tool; the feed is your appcast URL.
@@ -62,6 +63,8 @@ targets:
         com.apple.security.personal-information.calendars: true
         # Needed under the hardened runtime for "Use My Location" in Weather.
         com.apple.security.personal-information.location: true
+        # Needed under the hardened runtime for the Mirror tool.
+        com.apple.security.device.camera: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.macbooknotch.MacbookNotch

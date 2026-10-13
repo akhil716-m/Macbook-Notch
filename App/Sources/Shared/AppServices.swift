@@ -23,6 +23,9 @@ final class AppServices {
     let aiUsage: AIUsageService
     let license: LicenseService
     let updates: UpdateService
+    let teleprompter: TeleprompterService
+    let camera: CameraService
+    let currency: CurrencyService
     private var onboardingWindow: OnboardingWindowController?
     private var settingsWindow: SettingsWindowController?
 
@@ -55,6 +58,9 @@ final class AppServices {
         aiUsage = AIUsageService()
         license = LicenseService()
         updates = UpdateService()
+        teleprompter = TeleprompterService(fileURL: support.appendingPathComponent("teleprompter.json"))
+        camera = CameraService()
+        currency = CurrencyService(cacheURL: support.appendingPathComponent("rates.json"))
     }
 
     func start() {
@@ -70,6 +76,7 @@ final class AppServices {
         volume.start()
         ask.refreshAvailability()
         license.start()
+        teleprompter.start()
         if !settings.onboardingCompleted {
             openOnboarding()
         }

@@ -24,6 +24,7 @@ final class AppSettings: ObservableObject {
         static let showVolumeInNotch = "volume.showInNotch"
         static let replaceSystemVolumeHUD = "volume.replaceSystemHUD"
         static let onboardingCompleted = "onboarding.completed"
+        static let recentEmoji = "emoji.recent"
     }
 
     static let openDelayRange: ClosedRange<Double> = 0...0.6
@@ -105,6 +106,10 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(onboardingCompleted, forKey: Key.onboardingCompleted) }
     }
 
+    @Published var recentEmoji: [String] {
+        didSet { defaults.set(recentEmoji, forKey: Key.recentEmoji) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         displayMode = defaults.string(forKey: Key.displayMode).flatMap(DisplayMode.init(rawValue:)) ?? .automatic
@@ -127,6 +132,7 @@ final class AppSettings: ObservableObject {
         showVolumeInNotch = defaults.object(forKey: Key.showVolumeInNotch) as? Bool ?? true
         replaceSystemVolumeHUD = defaults.bool(forKey: Key.replaceSystemVolumeHUD)
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
+        recentEmoji = defaults.stringArray(forKey: Key.recentEmoji) ?? []
     }
 
     func setTool(_ tool: NotchTool, enabled: Bool) {

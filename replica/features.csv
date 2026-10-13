@@ -27,9 +27,9 @@ Volume HUD in the notch,system,should,yes,partial,replaces system HUD; needs med
 Stocks ticker watchlist,info,could,yes,no,needs a quotes source
 Today's revenue: Stripe / Shopify / Lemon Squeezy / Gumroad / Dodo / Polar / Paddle,founder,could,yes,no,user's own API keys in Keychain
 AI usage for Cursor and Grok,ai,could,yes,no,one listing only
-Teleprompter,creator,could,yes,no,
-Quick Mirror (camera preview),creator,could,yes,no,
-Emoji picker,utilities,could,yes,no,
-Unit and currency converter,utilities,could,yes,no,currency needs a rates source
+Teleprompter,creator,could,yes,partial,"M3a: script scrolls under the camera, speed + text size, keeps the notch open while playing"
+Quick Mirror (camera preview),creator,could,yes,partial,"M3a: mirrored front camera, runs only while visible"
+Emoji picker,utilities,could,yes,partial,"M3a: every single-character emoji from Swift's Unicode data, search, recents; no flags or skin tones"
+Unit and currency converter,utilities,could,yes,partial,"currency needs a rates source; M3a: 6 unit families via Measurement + 31 currencies from ECB rates (Frankfurter, no key)"
 Run Apple Shortcuts from the notch,utilities,could,unknown,skip,named in one search summary only; confirm before building
 OmniNotch name / Ask Omni name / logo / copy,brand,could,yes,skip,trademark and assets belong to OmniNotch; we rebrand

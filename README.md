@@ -42,6 +42,11 @@ The plan, feature list and build order are in [`replica/`](replica/):
     it resets, and the last 7 days. For Codex: its real limit percentages.
     Read only from the log files those tools keep on your Mac; their login
     tokens are never touched.
+  - **Teleprompter.** Your script scrolls right under the camera.
+  - **Mirror.** A quick look at your camera before a call.
+  - **Emoji.** Search by name, click to copy.
+  - **Converter.** Length, weight, temperature, volume, speed, data, and
+    31 currencies (European Central Bank rates via Frankfurter).
 - **The closed notch shows what's going on:** the volume when it changes,
   else a timer counting down, else music playing, else a cup when Keep Awake
   is on. Hiding the macOS volume popup is optional (Settings › General, needs
@@ -123,6 +128,7 @@ App/Sources/            the Mac app (SwiftUI views + AppKit window)
   AIUsage/              Claude Code and Codex usage from local logs
   Licensing/            licence keys (Lemon Squeezy) and Keychain
   Onboarding/           first-run welcome window
+  Utilities/            teleprompter, mirror, emoji, converter
   Settings/             settings window
   Shared/               settings, services, design tokens, launch at login
 Packages/NotchCore/     pure Swift logic with unit tests

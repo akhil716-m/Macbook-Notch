@@ -16,6 +16,10 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
     case weather
     case ask
     case aiUsage
+    case teleprompter
+    case mirror
+    case emoji
+    case converter
 
     public var id: String { rawValue }
 
@@ -34,6 +38,10 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
         case .weather: return "Weather"
         case .ask: return "Ask"
         case .aiUsage: return "AI Usage"
+        case .teleprompter: return "Teleprompter"
+        case .mirror: return "Mirror"
+        case .emoji: return "Emoji"
+        case .converter: return "Converter"
         }
     }
 
@@ -53,6 +61,10 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
         case .weather: return "cloud.sun"
         case .ask: return "sparkles"
         case .aiUsage: return "gauge.with.needle"
+        case .teleprompter: return "text.alignleft"
+        case .mirror: return "web.camera"
+        case .emoji: return "face.smiling"
+        case .converter: return "arrow.left.arrow.right"
         }
     }
 }

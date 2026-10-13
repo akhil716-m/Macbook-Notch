@@ -104,6 +104,15 @@ enum NotchStyle {
         static let meterWidth: CGFloat = 28
     }
 
+    enum Emoji {
+        static let cell: CGFloat = 30
+        static let size: CGFloat = 20
+    }
+
+    enum Converter {
+        static let inputWidth: CGFloat = 110
+    }
+
     enum KeepAwake {
         static let buttonSize: CGFloat = 56
         static let symbolSize: CGFloat = 24

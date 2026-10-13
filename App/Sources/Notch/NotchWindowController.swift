@@ -136,7 +136,8 @@ final class NotchWindowController {
 
         // Stay open while a button is held, a file hovers over us, or you're typing in the notch.
         let typing = panel?.isKeyWindow == true && panel?.firstResponder is NSTextView
-        let holdOpen = debouncer.isOpen && (NSEvent.pressedMouseButtons != 0 || model.isDropTargeted || typing)
+        let reading = services.teleprompter.isPlaying
+        let holdOpen = debouncer.isOpen && (NSEvent.pressedMouseButtons != 0 || model.isDropTargeted || typing || reading)
         if debouncer.update(pointerInside: inside, holdOpen: holdOpen, now: now) {
             applyOpenState()
         }

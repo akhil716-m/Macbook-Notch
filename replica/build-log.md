@@ -91,3 +91,12 @@ searches to its geocoding API. Nothing else leaves the Mac.
 
 Until those IDs and keys are filled in, licensing is off (everything is
 unlocked) and the update menu item is hidden, so test builds keep working.
+
+## Milestone 3a: could-haves without accounts
+
+| ID | date | status | missing | harder than expected |
+| --- | --- | --- | --- | --- |
+| S19 Teleprompter | 2026-10-13 | partial | mirrored text for beam-splitter rigs; multiple scripts | the notch must stay open while you read, even with the pointer elsewhere |
+| S20 Mirror | 2026-10-13 | partial | — | needs the camera entitlement under the hardened runtime |
+| S21 Emoji | 2026-10-13 | partial | flags, skin tones and multi-person emoji (sequences, not single characters) | none: names come from Swift's built-in Unicode data, so no list ships with the app |
+| S22 Converter | 2026-10-13 | partial | maths expressions ("5 km + 300 m") | — |
