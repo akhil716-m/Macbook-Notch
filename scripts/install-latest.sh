@@ -30,7 +30,13 @@ ditto -x -k "$zip" "$work/unzipped"
 
 echo "Installing to $APP..."
 pkill -x MacbookNotch 2>/dev/null || true
-sleep 1
+# Wait for the old copy to quit; if it's still running, `open` would just
+# bring it to the front instead of starting the new one.
+for _ in $(seq 20); do
+    pgrep -x MacbookNotch >/dev/null || break
+    sleep 0.5
+done
+pkill -9 -x MacbookNotch 2>/dev/null || true
 rm -rf "$APP"
 ditto "$work/unzipped/MacbookNotch.app" "$APP"
 # Unsigned test builds: clear the "downloaded from the internet" flag so
@@ -38,4 +44,11 @@ ditto "$work/unzipped/MacbookNotch.app" "$APP"
 xattr -dr com.apple.quarantine "$APP"
 
 open "$APP"
-echo "Done: build $run_id is running. Hover over the notch."
+sleep 3
+if pgrep -x MacbookNotch >/dev/null; then
+    echo "Done: build $run_id is running. Hover over the notch."
+else
+    echo "Build $run_id was installed but isn't running; it may have crashed."
+    echo "Run the diagnose command from the README and send its output."
+    exit 1
+fi

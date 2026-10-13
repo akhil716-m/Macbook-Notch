@@ -101,6 +101,14 @@ clears the "downloaded" flag and restarts the app. If you've cloned the repo,
 `./scripts/install-latest.sh` does the same. With Xcode installed,
 `./scripts/build-and-run.sh` builds and runs your local copy instead.
 
+If something's wrong, this collects the details (macOS version, whether the
+app is running, its newest crash report and recent errors) and copies them
+to the clipboard to paste into a bug report:
+
+```bash
+gh api "repos/akhil716-m/Macbook-Notch/contents/scripts/diagnose.sh?ref=claude/jolly-turing-rqk3tt" -H "Accept: application/vnd.github.raw" | bash
+```
+
 ### Option A: download a build from CI by hand (no Xcode needed)
 
 1. Open the repo's **Actions** tab, pick the latest green **CI** run, and
