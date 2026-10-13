@@ -23,6 +23,16 @@ The plan, feature list and build order are in [`replica/`](replica/):
   - **Clipboard.** Everything you copy (text, links, images, files), newest
     first. Click to copy it again, hold ⌥ to delete. Password-manager copies
     and ignored apps are never recorded.
+  - **Timers.** One click to start 1–45 minutes (25 is "Focus"). Pause,
+    resume, restart. The closed notch counts down and says "Done" with a chime.
+  - **To-dos.** Type, press Return, tick off. "Clear done" tidies up.
+  - **Notes.** A scratchpad that saves as you type.
+  - **System.** CPU (with a short history), memory, and network speed.
+  - **Keep Awake.** Stop the Mac sleeping until you turn it off or for
+    30 min to 4 hours, optionally keeping the display on.
+- **The closed notch shows what's going on:** a timer counting down, else
+  music playing, else a cup when Keep Awake is on.
+- **Typing in the notch** (Notes, To-dos) keeps it open; Escape closes it.
 - **Settings** (menu bar icon › Settings…, ⌘, or the gear in the notch):
   open at login, displays, hover timing, tools on/off and their order, shelf
   retention, clipboard size and ignored apps.
@@ -70,6 +80,9 @@ App/Sources/            the Mac app (SwiftUI views + AppKit window)
   NowPlaying/           Music / Spotify bridge and views
   Shelf/                file shelf service and view
   Clipboard/            clipboard history service and view
+  Timers/               countdown timers
+  Productivity/         to-dos, notes, Keep Awake
+  SystemStats/          CPU, memory, network
   Settings/             settings window
   Shared/               settings, services, design tokens, launch at login
 Packages/NotchCore/     pure Swift logic with unit tests

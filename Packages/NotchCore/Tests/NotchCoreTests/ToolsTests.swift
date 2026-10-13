@@ -10,12 +10,15 @@ final class ToolsTests: XCTestCase {
 
     func testStoredOrderIsCleanedAndNewToolsAppended() {
         let arrangement = ToolArrangement(storedOrder: ["clipboard", "bogus", "clipboard", "nowPlaying"])
-        XCTAssertEqual(arrangement.order, [.clipboard, .nowPlaying, .shelf])
+        XCTAssertEqual(Array(arrangement.order.prefix(2)), [.clipboard, .nowPlaying])
+        XCTAssertEqual(arrangement.order.count, NotchTool.allCases.count)
+        XCTAssertEqual(Set(arrangement.order), Set(NotchTool.allCases))
     }
 
     func testDisabledToolsAreHidden() {
         let arrangement = ToolArrangement(storedDisabled: ["shelf", "nope"])
-        XCTAssertEqual(arrangement.enabled, [.nowPlaying, .clipboard])
+        XCTAssertFalse(arrangement.enabled.contains(.shelf))
+        XCTAssertEqual(arrangement.enabled.count, NotchTool.allCases.count - 1)
         XCTAssertFalse(arrangement.isEnabled(.shelf))
         XCTAssertEqual(arrangement.storedDisabled, ["shelf"])
     }
@@ -27,8 +30,9 @@ final class ToolsTests: XCTestCase {
 
     func testTheLastEnabledToolCannotBeSwitchedOff() {
         var arrangement = ToolArrangement()
-        XCTAssertTrue(arrangement.setEnabled(.shelf, false))
-        XCTAssertTrue(arrangement.setEnabled(.clipboard, false))
+        for tool in NotchTool.allCases.dropFirst() {
+            XCTAssertTrue(arrangement.setEnabled(tool, false))
+        }
         XCTAssertFalse(arrangement.setEnabled(.nowPlaying, false))
         XCTAssertEqual(arrangement.enabled, [.nowPlaying])
         XCTAssertTrue(arrangement.setEnabled(.shelf, true))
@@ -36,21 +40,31 @@ final class ToolsTests: XCTestCase {
     }
 
     func testMoveMatchesSwiftUISemantics() {
-        var arrangement = ToolArrangement()
+        var arrangement = ToolArrangement(storedOrder: ["nowPlaying", "shelf", "clipboard"])
+        let rest = Array(arrangement.order.dropFirst(3))
         arrangement.move(fromOffsets: IndexSet(integer: 0), toOffset: 3)
-        XCTAssertEqual(arrangement.order, [.shelf, .clipboard, .nowPlaying])
+        XCTAssertEqual(arrangement.order, [.shelf, .clipboard, .nowPlaying] + rest)
         arrangement.move(fromOffsets: IndexSet(integer: 2), toOffset: 0)
-        XCTAssertEqual(arrangement.order, [.nowPlaying, .shelf, .clipboard])
+        XCTAssertEqual(arrangement.order, [.nowPlaying, .shelf, .clipboard] + rest)
         arrangement.move(fromOffsets: IndexSet([0, 1]), toOffset: 3)
-        XCTAssertEqual(arrangement.order, [.clipboard, .nowPlaying, .shelf])
+        XCTAssertEqual(arrangement.order, [.clipboard, .nowPlaying, .shelf] + rest)
+        arrangement.move(fromOffsets: IndexSet(integer: 0), toOffset: arrangement.order.count)
+        XCTAssertEqual(arrangement.order.last, .clipboard)
     }
 
     func testSelectionFallsBackToFirstEnabledTool() {
-        var arrangement = ToolArrangement()
+        var arrangement = ToolArrangement(storedOrder: ["nowPlaying", "shelf", "clipboard"])
         arrangement.setEnabled(.nowPlaying, false)
         XCTAssertEqual(arrangement.resolvedSelection(.nowPlaying), .shelf)
         XCTAssertEqual(arrangement.resolvedSelection(.clipboard), .clipboard)
         XCTAssertEqual(arrangement.resolvedSelection(nil), .shelf)
+    }
+
+    func testEveryToolHasATitleAndSymbol() {
+        for tool in NotchTool.allCases {
+            XCTAssertFalse(tool.title.isEmpty)
+            XCTAssertFalse(tool.symbolName.isEmpty)
+        }
     }
 
     // MARK: Displays

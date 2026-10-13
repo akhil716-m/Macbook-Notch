@@ -6,8 +6,8 @@ import NotchCore
 final class NotchViewModel: ObservableObject {
     @Published var layout: NotchLayout
     @Published var isOpen = false
-    /// Something worth showing while closed (music playing).
-    @Published var liveActivityActive = false
+    /// What the closed notch shows: a timer, music, Keep Awake, or nothing.
+    @Published var liveActivity: LiveActivity = .none
     /// A file drag is over the open notch.
     @Published var isDropTargeted = false
     /// ⌥ is held: show delete buttons on shelf and clipboard items.
@@ -19,6 +19,6 @@ final class NotchViewModel: ObservableObject {
 
     var presentation: NotchPresentation {
         if isOpen { return .open }
-        return liveActivityActive ? .compact : .closed
+        return liveActivity.isActive ? .compact : .closed
     }
 }

@@ -6,6 +6,11 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
     case nowPlaying
     case shelf
     case clipboard
+    case timers
+    case todos
+    case notes
+    case systemStats
+    case keepAwake
 
     public var id: String { rawValue }
 
@@ -14,6 +19,11 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
         case .nowPlaying: return "Now Playing"
         case .shelf: return "Shelf"
         case .clipboard: return "Clipboard"
+        case .timers: return "Timers"
+        case .todos: return "To-dos"
+        case .notes: return "Notes"
+        case .systemStats: return "System"
+        case .keepAwake: return "Keep Awake"
         }
     }
 
@@ -23,6 +33,11 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
         case .nowPlaying: return "music.note"
         case .shelf: return "tray.full"
         case .clipboard: return "doc.on.clipboard"
+        case .timers: return "timer"
+        case .todos: return "checklist"
+        case .notes: return "note.text"
+        case .systemStats: return "cpu"
+        case .keepAwake: return "cup.and.saucer"
         }
     }
 }

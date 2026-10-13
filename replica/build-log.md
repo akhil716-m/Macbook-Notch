@@ -42,3 +42,21 @@ Notes:
   so it uses no extra disk space until one side changes.
 - **⌥ to delete** is detected by checking the modifier keys while the notch
   is open. That needs no Accessibility permission. Right-click › Remove works too.
+
+## Milestone 2a: everyday should-haves
+
+| ID | date | status | missing | harder than expected |
+| --- | --- | --- | --- | --- |
+| S09 Timers | 2026-10-13 | partial | no custom length or label yet | — |
+| S12 To-dos | 2026-10-13 | partial | no editing of a title after adding | — |
+| S13 Quick notes | 2026-10-13 | partial | one scratchpad, not multiple notes | typing in a notch that never activates the app: the panel becomes key only for text fields, and routes ⌘C / ⌘V / ⌘Z itself because our Edit menu never receives them |
+| S16 System stats | 2026-10-13 | partial | no per-core view, no battery | network counters are 32-bit and wrap at 4 GB, handled |
+| S23 Keep Awake | 2026-10-13 | partial | — | — |
+| S02 Live activities | 2026-10-13 | partial | the shelf has no indicator | priority: finished timer > running timer > music > Keep Awake |
+
+Needs checking on a real Mac:
+
+- Typing in Notes / To-dos, then moving the pointer away: the notch should
+  stay open while a text field has focus, close on Escape, and hand the
+  keyboard back to the app you were in.
+- The timer notification permission prompt appears the first time a timer starts.

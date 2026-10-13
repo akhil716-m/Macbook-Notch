@@ -18,6 +18,7 @@ final class AppSettings: ObservableObject {
         static let shelfRetention = "shelf.retention"
         static let clipboardLimit = "clipboard.limit"
         static let ignoredApps = "clipboard.ignoredApps"
+        static let keepAwakeDisplayOn = "keepAwake.displayOn"
     }
 
     static let openDelayRange: ClosedRange<Double> = 0...0.6
@@ -64,6 +65,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(ignoredApps, forKey: Key.ignoredApps) }
     }
 
+    /// Keep Awake also stops the display from sleeping.
+    @Published var keepAwakeDisplayOn: Bool {
+        didSet { defaults.set(keepAwakeDisplayOn, forKey: Key.keepAwakeDisplayOn) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         displayMode = defaults.string(forKey: Key.displayMode).flatMap(DisplayMode.init(rawValue:)) ?? .automatic
@@ -78,6 +84,7 @@ final class AppSettings: ObservableObject {
         let storedLimit = defaults.integer(forKey: Key.clipboardLimit)
         clipboardLimit = ClipboardHistory.limitOptions.contains(storedLimit) ? storedLimit : ClipboardHistory.defaultLimit
         ignoredApps = defaults.stringArray(forKey: Key.ignoredApps) ?? PasteboardFilter.defaultIgnoredApps
+        keepAwakeDisplayOn = defaults.object(forKey: Key.keepAwakeDisplayOn) as? Bool ?? true
     }
 
     func setTool(_ tool: NotchTool, enabled: Bool) {

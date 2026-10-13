@@ -49,11 +49,7 @@ struct NotchRootView: View {
         case .closed:
             Color.clear
         case .compact:
-            CompactMusicActivity(
-                artwork: nowPlaying.artwork,
-                isPlaying: nowPlaying.track?.status == .playing,
-                notchWidth: model.layout.notchSize.width
-            )
+            compactContent(model.liveActivity)
         case .open:
             let selected = settings.tools.resolvedSelection(settings.selectedTool) ?? .nowPlaying
             VStack(spacing: 0) {
@@ -61,6 +57,7 @@ struct NotchRootView: View {
                     tools: settings.tools.enabled,
                     selected: selected,
                     notchWidth: model.layout.notchSize.width,
+                    panelWidth: model.layout.shapeSize(for: .open).width,
                     height: model.layout.notchSize.height,
                     onSelect: { settings.selectedTool = $0 },
                     onOpenSettings: { services.openSettings() }
@@ -83,6 +80,37 @@ struct NotchRootView: View {
             ShelfPanel(shelf: services.shelf, model: model, retention: settings.shelfRetention)
         case .clipboard:
             ClipboardPanel(clipboard: services.clipboard, model: model)
+        case .timers:
+            TimersPanel(timers: services.timers)
+        case .todos:
+            TodosPanel(todos: services.todos, model: model)
+        case .notes:
+            NotesPanel(notes: services.notes)
+        case .systemStats:
+            SystemStatsPanel(stats: services.systemStats)
+        case .keepAwake:
+            KeepAwakePanel(keepAwake: services.keepAwake, settings: settings)
+        }
+    }
+
+    @ViewBuilder
+    private func compactContent(_ activity: LiveActivity) -> some View {
+        let notchWidth = model.layout.notchSize.width
+        switch activity {
+        case .none:
+            Color.clear
+        case .music:
+            CompactMusicActivity(
+                artwork: nowPlaying.artwork,
+                isPlaying: nowPlaying.track?.status == .playing,
+                notchWidth: notchWidth
+            )
+        case .timer(let id):
+            CompactTimerActivity(timers: services.timers, timerID: id, finished: false, notchWidth: notchWidth)
+        case .timerFinished(let id):
+            CompactTimerActivity(timers: services.timers, timerID: id, finished: true, notchWidth: notchWidth)
+        case .keepAwake:
+            CompactKeepAwakeActivity(notchWidth: notchWidth)
         }
     }
 
@@ -122,52 +150,95 @@ struct NotchRootView: View {
     }
 }
 
-/// The strip beside the hardware notch: tool tabs on the left, Settings on
-/// the right, and nothing underneath the notch itself.
+/// The strip beside the hardware notch: tool tabs fill the left side, then
+/// the right (before Settings), then an overflow menu. Nothing sits under
+/// the notch itself.
 struct NotchHeader: View {
     let tools: [NotchTool]
     let selected: NotchTool
     let notchWidth: CGFloat
+    let panelWidth: CGFloat
     let height: CGFloat
     let onSelect: (NotchTool) -> Void
     let onOpenSettings: () -> Void
 
     var body: some View {
+        let sideWidth = (panelWidth - notchWidth) / 2 - NotchStyle.Space.l - NotchStyle.Space.m
+        let strip = TabStripLayout.split(
+            count: tools.count,
+            sideWidth: sideWidth,
+            tabWidth: NotchStyle.Tab.width,
+            spacing: NotchStyle.Space.xxs,
+            rightReserved: NotchStyle.Tab.width + NotchStyle.Space.xxs
+        )
+        let left = Array(tools.prefix(strip.left))
+        let right = Array(tools.dropFirst(strip.left).prefix(strip.right))
+        let overflow = Array(tools.dropFirst(strip.left + strip.right))
+
         HStack(spacing: 0) {
             HStack(spacing: NotchStyle.Space.xxs) {
-                ForEach(tools) { tool in
-                    Button {
-                        onSelect(tool)
-                    } label: {
-                        Image(systemName: tool.symbolName)
-                            .font(NotchStyle.Font.tab)
-                            .foregroundStyle(tool == selected ? NotchStyle.Palette.primaryText : NotchStyle.Palette.secondaryText)
-                            .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
-                            .background(
-                                Capsule().fill(tool == selected ? NotchStyle.Palette.selection : Color.clear)
-                            )
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .help(tool.title)
-                    .accessibilityLabel(tool.title)
-                    .accessibilityAddTraits(tool == selected ? .isSelected : [])
-                }
+                ForEach(left) { tab($0) }
             }
             Spacer(minLength: notchWidth + NotchStyle.Space.m * 2)
-            Button(action: onOpenSettings) {
-                Image(systemName: "gearshape")
-                    .font(NotchStyle.Font.tab)
-                    .foregroundStyle(NotchStyle.Palette.secondaryText)
-                    .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
-                    .contentShape(Rectangle())
+            HStack(spacing: NotchStyle.Space.xxs) {
+                ForEach(right) { tab($0) }
+                if !overflow.isEmpty {
+                    overflowMenu(overflow)
+                }
+                Button(action: onOpenSettings) {
+                    Image(systemName: "gearshape")
+                        .font(NotchStyle.Font.tab)
+                        .foregroundStyle(NotchStyle.Palette.secondaryText)
+                        .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Settings")
+                .accessibilityLabel("Settings")
             }
-            .buttonStyle(.plain)
-            .help("Settings")
-            .accessibilityLabel("Settings")
         }
         .padding(.horizontal, NotchStyle.Space.l)
         .frame(height: height)
+    }
+
+    private func tab(_ tool: NotchTool) -> some View {
+        Button {
+            onSelect(tool)
+        } label: {
+            Image(systemName: tool.symbolName)
+                .font(NotchStyle.Font.tab)
+                .foregroundStyle(tool == selected ? NotchStyle.Palette.primaryText : NotchStyle.Palette.secondaryText)
+                .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
+                .background(Capsule().fill(tool == selected ? NotchStyle.Palette.selection : Color.clear))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .help(tool.title)
+        .accessibilityLabel(tool.title)
+        .accessibilityAddTraits(tool == selected ? .isSelected : [])
+    }
+
+    private func overflowMenu(_ tools: [NotchTool]) -> some View {
+        let selectedInside = tools.contains(selected)
+        return Menu {
+            ForEach(tools) { tool in
+                Button {
+                    onSelect(tool)
+                } label: {
+                    Label(tool.title, systemImage: tool.symbolName)
+                }
+            }
+        } label: {
+            Image(systemName: selectedInside ? selected.symbolName : "ellipsis")
+                .font(NotchStyle.Font.tab)
+                .foregroundStyle(selectedInside ? NotchStyle.Palette.primaryText : NotchStyle.Palette.secondaryText)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .frame(width: NotchStyle.Tab.width, height: NotchStyle.Tab.height)
+        .background(Capsule().fill(selectedInside ? NotchStyle.Palette.selection : Color.clear))
+        .help("More tools")
+        .accessibilityLabel("More tools")
     }
 }
 

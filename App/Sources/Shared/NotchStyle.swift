@@ -6,7 +6,7 @@ enum NotchStyle {
     // MARK: Geometry
     static let openSize = CGSize(width: 520, height: 190)
     /// Width added on each side of the notch for a live activity.
-    static let wingWidth: CGFloat = 36
+    static let wingWidth: CGFloat = 44
     /// Room around the open panel for its shadow.
     static let windowMargin: CGFloat = 24
 
@@ -47,6 +47,8 @@ enum NotchStyle {
         static let rowBackground = Color.white.opacity(0.06)
         static let dropOutline = Color.white.opacity(0.7)
         static let removeBackground = Color.gray
+        /// Running timers, Keep Awake, meters.
+        static let accent = Color.orange
     }
 
     // MARK: Type
@@ -59,6 +61,27 @@ enum NotchStyle {
         static let tab = SwiftUI.Font.system(size: 12, weight: .semibold)
         static let rowTitle = SwiftUI.Font.system(size: 12)
         static let tileName = SwiftUI.Font.system(size: 10)
+        static let body = SwiftUI.Font.system(size: 12)
+        static let chip = SwiftUI.Font.system(size: 11, weight: .medium)
+        static let countdown = SwiftUI.Font.system(size: 15, weight: .semibold).monospacedDigit()
+        static let statValue = SwiftUI.Font.system(size: 15, weight: .semibold).monospacedDigit()
+        static let compactIcon = SwiftUI.Font.system(size: 12, weight: .semibold)
+        static let compactValue = SwiftUI.Font.system(size: 11, weight: .semibold).monospacedDigit()
+    }
+
+    enum Chip {
+        static let height: CGFloat = 22
+        static let horizontalPadding: CGFloat = 9
+    }
+
+    enum Row {
+        static let iconSize: CGFloat = 11
+        static let iconHit: CGFloat = 24
+    }
+
+    enum KeepAwake {
+        static let buttonSize: CGFloat = 56
+        static let symbolSize: CGFloat = 24
     }
 
     // MARK: Header

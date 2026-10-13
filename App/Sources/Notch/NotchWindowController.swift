@@ -40,6 +40,7 @@ final class NotchWindowController {
             onTapClosed: { [weak self] in self?.openNow() }
         )
         panel.contentView = NotchHostingView(rootView: root)
+        panel.onEscape = { [weak self] in self?.closeNow() }
         panel.orderFrontRegardless()
         self.panel = panel
 
@@ -132,7 +133,9 @@ final class NotchWindowController {
             }
         }
 
-        let holdOpen = debouncer.isOpen && (NSEvent.pressedMouseButtons != 0 || model.isDropTargeted)
+        // Stay open while a button is held, a file hovers over us, or you're typing in the notch.
+        let typing = panel?.isKeyWindow == true && panel?.firstResponder is NSTextView
+        let holdOpen = debouncer.isOpen && (NSEvent.pressedMouseButtons != 0 || model.isDropTargeted || typing)
         if debouncer.update(pointerInside: inside, holdOpen: holdOpen, now: now) {
             applyOpenState()
         }
@@ -148,16 +151,40 @@ final class NotchWindowController {
         evaluatePointer()
     }
 
+    private func closeNow() {
+        if debouncer.closeNow() {
+            applyOpenState()
+        }
+        evaluatePointer()
+    }
+
     private func applyOpenState() {
         let open = debouncer.isOpen
         guard model.isOpen != open else { return }
-        model.isOpen = open
-        if !open {
+        if open {
+            // A timer just went off: show it.
+            if services.timers.finishedTimerID != nil, services.settings.tools.isEnabled(.timers) {
+                services.settings.selectedTool = .timers
+            }
+            services.timers.acknowledgeFinished()
+        } else {
             model.optionHeld = false
             model.isDropTargeted = false
+            services.notes.flush()
+            giveBackKeyboard()
         }
+        model.isOpen = open
         services.nowPlaying.setLiveUpdates(open)
         setOpenPolling(open)
+    }
+
+    /// If you were typing in the notch, hand the keyboard back to the app you
+    /// were in. Ordering the panel out and back in makes macOS pick that
+    /// app's window as key again.
+    private func giveBackKeyboard() {
+        guard let panel, panel.isKeyWindow else { return }
+        panel.orderOut(nil)
+        panel.orderFrontRegardless()
     }
 
     /// Re-check when a pending open or close falls due, even if the pointer is still.
@@ -209,16 +236,28 @@ final class NotchWindowController {
     // MARK: Services
 
     private func observeServices() {
-        services.nowPlaying.$track
-            .map { $0?.status == .playing }
-            .removeDuplicates()
-            .sink { [weak self] active in
-                MainActor.assumeIsolated {
-                    self?.model.liveActivityActive = active
-                    self?.evaluatePointer()
-                }
+        Publishers.CombineLatest4(
+            services.nowPlaying.$track.map { $0?.status == .playing }.removeDuplicates(),
+            services.timers.$runningTimerID.removeDuplicates(),
+            services.timers.$finishedTimerID.removeDuplicates(),
+            services.keepAwake.$isActive.removeDuplicates()
+        )
+        .map { musicPlaying, runningTimer, finishedTimer, keepAwake in
+            LiveActivity.pick(
+                finishedTimer: finishedTimer,
+                runningTimer: runningTimer,
+                musicPlaying: musicPlaying,
+                keepAwake: keepAwake
+            )
+        }
+        .removeDuplicates()
+        .sink { [weak self] activity in
+            MainActor.assumeIsolated {
+                self?.model.liveActivity = activity
+                self?.evaluatePointer()
             }
-            .store(in: &cancellables)
+        }
+        .store(in: &cancellables)
 
         services.settings.$openDelay
             .sink { [weak self] delay in

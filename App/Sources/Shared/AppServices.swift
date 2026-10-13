@@ -9,6 +9,11 @@ final class AppServices {
     let nowPlaying: NowPlayingService
     let shelf: ShelfService
     let clipboard: ClipboardService
+    let timers: TimerService
+    let keepAwake: KeepAwakeService
+    let systemStats: SystemStatsService
+    let notes: NotesService
+    let todos: TodoService
     private var settingsWindow: SettingsWindowController?
 
     init() {
@@ -25,12 +30,20 @@ final class AppServices {
             storage: ClipboardStorage(rootURL: support.appendingPathComponent("Clipboard", isDirectory: true)),
             settings: settings
         )
+        timers = TimerService(fileURL: support.appendingPathComponent("timers.json"))
+        keepAwake = KeepAwakeService(settings: settings)
+        systemStats = SystemStatsService()
+        notes = NotesService(fileURL: support.appendingPathComponent("notes.json"))
+        todos = TodoService(fileURL: support.appendingPathComponent("todos.json"))
     }
 
     func start() {
         nowPlaying.start()
         shelf.start()
         clipboard.start()
+        timers.start()
+        notes.start()
+        todos.start()
     }
 
     func openSettings() {
