@@ -73,10 +73,10 @@ targets:
         # ("Sign to Run Locally") builds have no team, so Debug runs without
         # it; signed Release builds keep it (notarisation requires it).
         ENABLE_HARDENED_RUNTIME: YES
-      configs:
-        Debug:
-          ENABLE_HARDENED_RUNTIME: NO
         # Ad-hoc "Sign to Run Locally" by default. Set your team in Xcode to sign properly.
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: "-"
+      configs:
+        Debug:
+          ENABLE_HARDENED_RUNTIME: NO
     scheme: {}
