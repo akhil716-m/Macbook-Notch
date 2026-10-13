@@ -37,6 +37,7 @@ final class NotchWindowController {
             services: services,
             settings: services.settings,
             nowPlaying: services.nowPlaying,
+            license: services.license,
             onTapClosed: { [weak self] in self?.openNow() }
         )
         panel.contentView = NotchHostingView(rootView: root)

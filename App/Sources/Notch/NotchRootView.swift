@@ -9,6 +9,7 @@ struct NotchRootView: View {
     let services: AppServices
     @ObservedObject var settings: AppSettings
     @ObservedObject var nowPlaying: NowPlayingService
+    @ObservedObject var license: LicenseService
     let onTapClosed: () -> Void
 
     var body: some View {
@@ -62,7 +63,13 @@ struct NotchRootView: View {
                     onSelect: { settings.selectedTool = $0 },
                     onOpenSettings: { services.openSettings() }
                 )
-                toolView(selected)
+                Group {
+                    if license.allowsUse {
+                        toolView(selected)
+                    } else {
+                        LicenseGate(license: license)
+                    }
+                }
                     .padding(.horizontal, NotchStyle.Space.xl)
                     .padding(.top, NotchStyle.Space.xs)
                     .padding(.bottom, NotchStyle.Space.l)
@@ -98,6 +105,8 @@ struct NotchRootView: View {
             WeatherPanel(weather: services.weather, settings: settings)
         case .ask:
             AskPanel(ask: services.ask)
+        case .aiUsage:
+            AIUsagePanel(usage: services.aiUsage)
         }
     }
 

@@ -20,6 +20,10 @@ final class AppServices {
     let weather: WeatherService
     let volume: VolumeService
     let ask: AskService
+    let aiUsage: AIUsageService
+    let license: LicenseService
+    let updates: UpdateService
+    private var onboardingWindow: OnboardingWindowController?
     private var settingsWindow: SettingsWindowController?
 
     init() {
@@ -48,6 +52,9 @@ final class AppServices {
         weather = WeatherService(settings: settings, cacheURL: support.appendingPathComponent("weather.json"))
         volume = VolumeService(settings: settings)
         ask = AskService()
+        aiUsage = AIUsageService()
+        license = LicenseService()
+        updates = UpdateService()
     }
 
     func start() {
@@ -62,6 +69,17 @@ final class AppServices {
         weather.start()
         volume.start()
         ask.refreshAvailability()
+        license.start()
+        if !settings.onboardingCompleted {
+            openOnboarding()
+        }
+    }
+
+    func openOnboarding() {
+        if onboardingWindow == nil {
+            onboardingWindow = OnboardingWindowController(services: self)
+        }
+        onboardingWindow?.show()
     }
 
     func openSettings() {

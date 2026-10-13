@@ -19,7 +19,9 @@ final class SettingsWindowController {
                 settings: services.settings,
                 launchAtLogin: services.launchAtLogin,
                 shelf: services.shelf,
-                clipboard: services.clipboard
+                clipboard: services.clipboard,
+                license: services.license,
+                updates: services.updates
             )
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
             window.title = "MacbookNotch Settings"

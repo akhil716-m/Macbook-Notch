@@ -8,6 +8,9 @@ options:
 packages:
   NotchCore:
     path: Packages/NotchCore
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.4
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -21,6 +24,7 @@ targets:
       - App/Sources
     dependencies:
       - package: NotchCore
+      - package: Sparkle
     info:
       path: App/Info.plist
       properties:
@@ -39,6 +43,16 @@ targets:
         NSLocationWhenInUseUsageDescription: MacbookNotch uses your approximate location to show local weather.
         NSLocationUsageDescription: MacbookNotch uses your approximate location to show local weather.
         NSHumanReadableCopyright: ""
+        # Sparkle updates: fill both in to switch updates on. The key comes
+        # from Sparkle's generate_keys tool; the feed is your appcast URL.
+        SUFeedURL: ""
+        SUPublicEDKey: ""
+        SUEnableAutomaticChecks: true
+        # Lemon Squeezy licensing: fill in your store and product IDs to
+        # switch licensing on. 0 means every build is unlocked.
+        MNLicenseStoreID: 0
+        MNLicenseProductID: 0
+        MNPurchaseURL: ""
     entitlements:
       path: App/MacbookNotch.entitlements
       properties:

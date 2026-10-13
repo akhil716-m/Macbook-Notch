@@ -8,10 +8,12 @@ struct SettingsView: View {
     @ObservedObject var launchAtLogin: LaunchAtLogin
     let shelf: ShelfService
     let clipboard: ClipboardService
+    let license: LicenseService
+    let updates: UpdateService
 
     var body: some View {
         TabView {
-            GeneralSettings(settings: settings, launchAtLogin: launchAtLogin)
+            GeneralSettings(settings: settings, launchAtLogin: launchAtLogin, updates: updates)
                 .tabItem { Label("General", systemImage: "gearshape") }
             ToolsSettings(settings: settings)
                 .tabItem { Label("Tools", systemImage: "square.grid.2x2") }
@@ -19,6 +21,8 @@ struct SettingsView: View {
                 .tabItem { Label("Shelf", systemImage: "tray.full") }
             ClipboardSettings(settings: settings, clipboard: clipboard)
                 .tabItem { Label("Clipboard", systemImage: "doc.on.clipboard") }
+            LicenseSettings(license: license)
+                .tabItem { Label("Licence", systemImage: "key") }
         }
         .frame(width: 480, height: 400)
     }
@@ -29,6 +33,7 @@ struct SettingsView: View {
 private struct GeneralSettings: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var launchAtLogin: LaunchAtLogin
+    @ObservedObject var updates: UpdateService
 
     var body: some View {
         Form {
@@ -67,6 +72,21 @@ private struct GeneralSettings: View {
                 LabeledContent("Place", value: settings.weatherLocation?.fullName ?? "Not set")
                 if settings.weatherLocation != nil {
                     Button("Forget Place") { settings.weatherLocation = nil }
+                }
+            }
+
+            Section("Updates") {
+                LabeledContent("Version", value: UpdateService.versionDescription)
+                if updates.isConfigured {
+                    Toggle("Check for updates automatically", isOn: Binding(
+                        get: { updates.automaticallyChecks },
+                        set: { updates.automaticallyChecks = $0 }
+                    ))
+                    Button("Check Now") { updates.checkForUpdates() }
+                        .disabled(!updates.canCheck)
+                } else {
+                    Text("Updates aren't set up in this build.")
+                        .foregroundStyle(.secondary)
                 }
             }
 

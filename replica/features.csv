@@ -12,9 +12,9 @@ AirDrop from the shelf,files,must,yes,partial,M1: all items or one via right-cli
 Shelf retention window (default 1 day; configurable) and ⌥-click delete,files,must,yes,partial,NotchDrop baseline; M1: 1h to forever; ⌥ shows remove buttons; right-click remove
 Clipboard history newest-first with click to re-copy and ⌥-delete,clipboard,must,yes,partial,M1: text / links / images / files; plain text only on re-copy
 Skip password-manager clips (concealed pasteboard types),clipboard,must,yes,partial,M1: nspasteboard.org markers + ignored apps list
-Licence key activation (3 Macs; works offline after activation),licensing,should,yes,no,original uses Dodo Payments
+Licence key activation (3 Macs; works offline after activation),licensing,should,yes,partial,"original uses Dodo Payments; M2d: Lemon Squeezy License API, Keychain, weekly check, 30-day offline grace, product check; off until store/product IDs are set"
 Ask Omni on-device chat (Apple FoundationModels),ai,should,yes,partial,"macOS 26 + Apple silicon only; degrade elsewhere; M2c: 'Ask' tool, Apple FoundationModels, keeps context, new chat; explains every unavailable case; only compiled with Xcode 26+"
-Live AI CLI usage: Claude / Codex / Copilot,ai,should,yes,no,reads local CLI tokens on-device
+Live AI CLI usage: Claude / Codex / Copilot,ai,should,yes,partial,reads local CLI tokens on-device; M2d: reads only local logs (no tokens). Claude: tokens in the current 5-hour block + reset time + 7 days. Codex: real limit % from its logs. Copilot: not available locally
 Timers with live countdown in the notch,productivity,should,yes,partial,"Pomodoro named in one extract only; M2: presets 1-45 min, pause/resume/restart, live countdown + Done in the closed notch, chime + notification"
 Calendar: today's events (EventKit),productivity,should,yes,partial,"M2b: today + tomorrow, calendar colours, Now badge, Join for Zoom/Meet/Teams links, opens in Calendar"
 Reminders (EventKit),productivity,should,yes,partial,"M2b: open reminders by urgency, tick to complete, add to default list"

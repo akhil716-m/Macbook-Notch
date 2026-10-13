@@ -11,6 +11,14 @@ struct MacbookNotchApp: App {
                 appDelegate.openSettings()
             }
             .keyboardShortcut(",")
+            Button("Welcome Guide…") {
+                appDelegate.openOnboarding()
+            }
+            if UpdateService.isConfigured(in: .main) {
+                Button("Check for Updates…") {
+                    appDelegate.checkForUpdates()
+                }
+            }
             Divider()
             Button("Quit MacbookNotch") {
                 NSApplication.shared.terminate(nil)
@@ -40,4 +48,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             services?.openSettings()
         }
     }
+
+    func openOnboarding() {
+        MainActor.assumeIsolated {
+            services?.openOnboarding()
+        }
+    }
+
+    func checkForUpdates() {
+        MainActor.assumeIsolated {
+            services?.updates.checkForUpdates()
+        }
+    }
+
 }

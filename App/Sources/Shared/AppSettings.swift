@@ -23,6 +23,7 @@ final class AppSettings: ObservableObject {
         static let weatherLocation = "weather.location"
         static let showVolumeInNotch = "volume.showInNotch"
         static let replaceSystemVolumeHUD = "volume.replaceSystemHUD"
+        static let onboardingCompleted = "onboarding.completed"
     }
 
     static let openDelayRange: ClosedRange<Double> = 0...0.6
@@ -99,6 +100,11 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(replaceSystemVolumeHUD, forKey: Key.replaceSystemVolumeHUD) }
     }
 
+    /// The welcome window has been seen and closed.
+    @Published var onboardingCompleted: Bool {
+        didSet { defaults.set(onboardingCompleted, forKey: Key.onboardingCompleted) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         displayMode = defaults.string(forKey: Key.displayMode).flatMap(DisplayMode.init(rawValue:)) ?? .automatic
@@ -120,6 +126,7 @@ final class AppSettings: ObservableObject {
             .flatMap { try? JSONDecoder().decode(WeatherLocation.self, from: $0) }
         showVolumeInNotch = defaults.object(forKey: Key.showVolumeInNotch) as? Bool ?? true
         replaceSystemVolumeHUD = defaults.bool(forKey: Key.replaceSystemVolumeHUD)
+        onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
     }
 
     func setTool(_ tool: NotchTool, enabled: Bool) {

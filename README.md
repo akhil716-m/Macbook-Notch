@@ -38,6 +38,10 @@ The plan, feature list and build order are in [`replica/`](replica/):
   - **Ask.** Chat with Apple's on-device model (Apple Intelligence). Needs
     macOS 26 on Apple silicon and a build made with Xcode 26; nothing you
     type leaves the Mac.
+  - **AI Usage.** For Claude Code: tokens in the current 5-hour window, when
+    it resets, and the last 7 days. For Codex: its real limit percentages.
+    Read only from the log files those tools keep on your Mac; their login
+    tokens are never touched.
 - **The closed notch shows what's going on:** the volume when it changes,
   else a timer counting down, else music playing, else a cup when Keep Awake
   is on. Hiding the macOS volume popup is optional (Settings › General, needs
@@ -54,6 +58,20 @@ you picked.
 
 macOS asks for permission the first time you open Calendar, Reminders, or
 Weather's "Use My Location".
+
+## Before selling it
+
+Three things in `project.yml` are blank on purpose, so test builds work:
+
+- **Licensing (Lemon Squeezy):** `MNLicenseStoreID`, `MNLicenseProductID`
+  and `MNPurchaseURL`. Set the product's activation limit to 3 in Lemon
+  Squeezy. While the IDs are 0, every build is unlocked.
+- **Updates (Sparkle):** `SUFeedURL` (your appcast) and `SUPublicEDKey`
+  (from Sparkle's `generate_keys`). While blank, updates are off.
+- **Weather:** swap Open-Meteo's free tier for WeatherKit or their
+  commercial plan.
+
+You'll also need an Apple Developer account to sign and notarise the app.
 
 ## Run it
 
@@ -102,6 +120,9 @@ App/Sources/            the Mac app (SwiftUI views + AppKit window)
   Weather/              forecast and location
   Volume/               volume watching and the optional volume-key tap
   Ask/                  on-device chat (FoundationModels)
+  AIUsage/              Claude Code and Codex usage from local logs
+  Licensing/            licence keys (Lemon Squeezy) and Keychain
+  Onboarding/           first-run welcome window
   Settings/             settings window
   Shared/               settings, services, design tokens, launch at login
 Packages/NotchCore/     pure Swift logic with unit tests

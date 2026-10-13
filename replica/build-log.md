@@ -79,3 +79,15 @@ searches to its geocoding API. Nothing else leaves the Mac.
 | --- | --- | --- | --- | --- |
 | S24 Volume HUD | 2026-10-13 | partial | no brightness HUD | showing changes needs nothing, but hiding the macOS popup means catching the volume keys with an event tap, which needs Accessibility. Ad-hoc builds lose that permission on every rebuild |
 | S05 Ask (on-device chat) | 2026-10-13 | partial | answers arrive all at once (no streaming yet); renamed from the original's "Ask Omni" | Apple's FoundationModels exists only in the macOS 26 SDK (Xcode 26), so the code is compiled only when available, and macOS 14/15 users get an explanation instead |
+
+## Milestone 2d: AI usage, licensing, onboarding, updates
+
+| ID | date | status | missing | harder than expected |
+| --- | --- | --- | --- | --- |
+| S17 AI usage | 2026-10-13 | partial | Copilot (keeps no local usage); Claude limits as a % (its logs have tokens, not limits); Cursor / Grok | log files can be large, so each scan reads only lines added since the last one, and Claude Code logs some calls twice (deduplicated by message + request id) |
+| S28 Licence activation | 2026-10-13 | partial | **needs your Lemon Squeezy store**: set MNLicenseStoreID, MNLicenseProductID, MNPurchaseURL in project.yml; activation limit 3 is set on the product | every key is checked against our store and product IDs, otherwise any Lemon Squeezy key would unlock the app |
+| S27 Onboarding | 2026-10-13 | partial | — | — |
+| Updates (Sparkle) | 2026-10-13 | partial | **needs an appcast and signing key**: set SUFeedURL and SUPublicEDKey in project.yml (generate_keys from Sparkle) | — |
+
+Until those IDs and keys are filled in, licensing is off (everything is
+unlocked) and the update menu item is hidden, so test builds keep working.
