@@ -79,7 +79,7 @@ struct MirrorPanel: View {
             switch camera.access {
             case .granted where camera.hasCamera:
                 CameraPreview(session: camera.session)
-                    .clipShape(RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: NotchStyle.Card.radius + 4, style: .continuous))
                     .accessibilityLabel("Camera preview")
             case .granted:
                 EmptyToolState(symbol: "video.slash", title: "No camera found", message: "Connect a camera, or close another app that's using it.")

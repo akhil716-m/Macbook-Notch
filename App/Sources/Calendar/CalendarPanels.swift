@@ -323,55 +323,88 @@ struct RemindersPanel: View {
                 action: { SystemSettingsLink.open("Privacy_Reminders") }
             )
         case .granted:
+            RemindersContent(
+                items: reminders.reminders,
+                draft: $draft,
+                isLoading: reminders.isLoading,
+                now: Date(),
+                onAdd: {
+                    reminders.add(draft)
+                    draft = ""
+                },
+                onComplete: { reminders.complete($0) },
+                onOpenApp: { reminders.openRemindersApp() }
+            )
+        }
+    }
+}
+
+/// The count on the left, the list on the right, like To-dos. From plain
+/// values so it can also be drawn with sample data.
+struct RemindersContent: View {
+    let items: [ReminderItem]
+    @Binding var draft: String
+    let isLoading: Bool
+    let now: Date
+    let onAdd: () -> Void
+    let onComplete: (ReminderItem) -> Void
+    let onOpenApp: () -> Void
+
+    var body: some View {
+        let overdue = items.filter { ReminderOrder.bucket($0, now: now, calendar: .current) == .overdue }.count
+        HStack(alignment: .top, spacing: NotchStyle.Space.xl) {
+            CountSummary(
+                count: items.count,
+                label: items.count == 1 ? "reminder" : "reminders",
+                detail: overdue > 0 ? "\(overdue) overdue" : (items.isEmpty ? nil : "None overdue"),
+                detailTint: overdue > 0 ? NotchStyle.Palette.overdue : NotchStyle.Palette.tertiaryText
+            ) {
+                Button("Open Reminders", action: onOpenApp)
+                    .buttonStyle(ChipButtonStyle())
+            }
             VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
-                HStack(spacing: NotchStyle.Space.s) {
-                    TextField("New reminder, then Return", text: $draft)
-                        .textFieldStyle(.plain)
+                NotchTextField(placeholder: "New reminder", text: $draft, onSubmit: onAdd)
+                if items.isEmpty {
+                    Text(isLoading ? "Loading…" : "All done. Nothing open in Reminders.")
                         .font(NotchStyle.Font.body)
-                        .padding(.horizontal, NotchStyle.Space.m)
-                        .frame(height: NotchStyle.Chip.height + NotchStyle.Space.xs)
-                        .background(
-                            RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                                .fill(NotchStyle.Palette.rowBackground)
-                        )
-                        .onSubmit {
-                            reminders.add(draft)
-                            draft = ""
-                        }
-                    Button("Open Reminders") { reminders.openRemindersApp() }
-                        .buttonStyle(ChipButtonStyle())
-                }
-                if reminders.reminders.isEmpty {
-                    EmptyToolState(
-                        symbol: "checkmark.circle",
-                        title: reminders.isLoading ? "Loading…" : "All done",
-                        message: reminders.isLoading ? "" : "No open reminders."
-                    )
+                        .foregroundStyle(NotchStyle.Palette.secondaryText)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: NotchStyle.Space.xxs) {
-                            ForEach(reminders.reminders) { item in
-                                ReminderRow(item: item, onComplete: { reminders.complete(item) })
+                    Group {
+                        if items.count <= NotchStyle.Todo.rowsWithoutScrolling {
+                            VStack(spacing: 0) { rows }
+                        } else {
+                            ScrollView(.vertical, showsIndicators: false) {
+                                LazyVStack(spacing: 0) { rows }
                             }
                         }
                     }
+                    .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
+        }
+    }
+
+    private var rows: some View {
+        ForEach(items) { item in
+            ReminderRow(item: item, now: now, onComplete: { onComplete(item) })
         }
     }
 }
 
 private struct ReminderRow: View {
     let item: ReminderItem
+    let now: Date
     let onComplete: () -> Void
 
+    @State private var isHovered = false
+
     var body: some View {
-        let now = Date()
         let bucket = ReminderOrder.bucket(item, now: now, calendar: .current)
         HStack(spacing: NotchStyle.Space.m) {
             Button(action: onComplete) {
                 Image(systemName: "circle")
-                    .font(.system(size: NotchStyle.Row.iconSize + 2))
+                    .font(.system(size: NotchStyle.Todo.checkSize))
                     .foregroundStyle(Color(item.color, fallback: NotchStyle.Palette.secondaryText))
             }
             .buttonStyle(.plain)
@@ -385,11 +418,17 @@ private struct ReminderRow: View {
             if let due = Self.dueText(item, bucket: bucket, now: now) {
                 Text(due)
                     .font(NotchStyle.Font.caption)
-                    .foregroundStyle(bucket == .overdue ? NotchStyle.Palette.overdue : NotchStyle.Palette.secondaryText)
+                    .foregroundStyle(bucket == .overdue ? NotchStyle.Palette.overdue : NotchStyle.Palette.tertiaryText)
             }
         }
-        .padding(.horizontal, NotchStyle.Space.m)
-        .padding(.vertical, NotchStyle.Space.xxs)
+        .padding(.horizontal, NotchStyle.Space.s)
+        .padding(.vertical, NotchStyle.Space.xs + 1)
+        .background(
+            RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
+                .fill(isHovered ? NotchStyle.Palette.rowBackground : Color.clear)
+        )
+        .contentShape(Rectangle())
+        .onHover { isHovered = $0 }
     }
 
     static func dueText(_ item: ReminderItem, bucket: ReminderBucket, now: Date) -> String? {

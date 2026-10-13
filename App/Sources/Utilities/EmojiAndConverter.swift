@@ -10,54 +10,22 @@ struct EmojiPanel: View {
     @State private var query = ""
     @State private var copied: String?
 
-    private let columns = [GridItem(.adaptive(minimum: NotchStyle.Emoji.cell), spacing: NotchStyle.Space.xxs)]
-
     var body: some View {
-        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
-            HStack(spacing: NotchStyle.Space.s) {
-                TextField("Search emoji", text: $query)
-                    .textFieldStyle(.plain)
-                    .font(NotchStyle.Font.body)
-                    .padding(.horizontal, NotchStyle.Space.m)
-                    .frame(height: NotchStyle.Chip.height + NotchStyle.Space.xs)
-                    .background(
-                        RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                            .fill(NotchStyle.Palette.rowBackground)
-                    )
-                if let copied {
-                    Text("Copied \(copied)")
-                        .font(NotchStyle.Font.caption)
-                        .foregroundStyle(NotchStyle.Palette.secondaryText)
-                        .transition(.opacity)
-                }
-            }
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVGrid(columns: columns, spacing: NotchStyle.Space.xxs) {
-                    ForEach(items) { item in
-                        Button {
-                            copy(item.character)
-                        } label: {
-                            Text(item.character)
-                                .font(.system(size: NotchStyle.Emoji.size))
-                                .frame(width: NotchStyle.Emoji.cell, height: NotchStyle.Emoji.cell)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .help(item.name.capitalized)
-                        .accessibilityLabel(item.name)
-                    }
-                }
-            }
-        }
+        EmojiContent(
+            query: $query,
+            recent: settings.recentEmoji,
+            results: results,
+            copied: copied,
+            onCopy: { copy($0) }
+        )
         .animation(.easeOut(duration: 0.15), value: copied)
     }
 
-    private var items: [EmojiItem] {
+    private var results: [EmojiItem] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         if !trimmed.isEmpty { return EmojiCatalog.search(trimmed) }
-        let recents = settings.recentEmoji.map { EmojiItem(character: $0, name: "recently used") }
         let recentSet = Set(settings.recentEmoji)
-        return recents + EmojiCatalog.all.filter { !recentSet.contains($0.character) }
+        return EmojiCatalog.all.filter { !recentSet.contains($0.character) }
     }
 
     private func copy(_ character: String) {
@@ -70,6 +38,95 @@ struct EmojiPanel: View {
             try? await Task.sleep(for: .seconds(1.2))
             if copied == character { copied = nil }
         }
+    }
+}
+
+/// Search, your recent emoji large, then everything else. From plain values
+/// so it can also be drawn with sample data.
+struct EmojiContent: View {
+    @Binding var query: String
+    let recent: [String]
+    let results: [EmojiItem]
+    let copied: String?
+    let onCopy: (String) -> Void
+
+    @Environment(\.isSnapshot) private var isSnapshot
+
+    private let columns = [GridItem(.adaptive(minimum: NotchStyle.Emoji.cell), spacing: NotchStyle.Space.xxs)]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
+            HStack(spacing: NotchStyle.Space.s) {
+                NotchTextField(placeholder: "Search emoji", text: $query, symbol: "magnifyingglass", onSubmit: {
+                    if let first = results.first { onCopy(first.character) }
+                })
+                if let copied {
+                    Label("Copied \(copied)", systemImage: "checkmark")
+                        .font(NotchStyle.Font.chip)
+                        .foregroundStyle(NotchStyle.Palette.primaryText)
+                        .transition(.opacity)
+                }
+            }
+            if query.isEmpty && !recent.isEmpty {
+                HStack(spacing: NotchStyle.Space.xs) {
+                    ForEach(recent.prefix(NotchStyle.Emoji.recentCount), id: \.self) { character in
+                        EmojiCell(character: character, name: "Recently used", size: NotchStyle.Emoji.recentSize,
+                                  cell: NotchStyle.Emoji.recentCell, onCopy: onCopy)
+                    }
+                }
+                .padding(NotchStyle.Space.xs)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(NotchCardBackground())
+            }
+            if results.isEmpty {
+                Text("No emoji match \u{201C}\(query)\u{201D}.")
+                    .font(NotchStyle.Font.body)
+                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if isSnapshot {
+                grid.frame(maxHeight: .infinity, alignment: .top).clipped()
+            } else {
+                ScrollView(.vertical, showsIndicators: false) { grid }
+            }
+        }
+    }
+
+    private var grid: some View {
+        LazyVGrid(columns: columns, spacing: NotchStyle.Space.xxs) {
+            ForEach(results) { item in
+                EmojiCell(character: item.character, name: item.name, size: NotchStyle.Emoji.size,
+                          cell: NotchStyle.Emoji.cell, onCopy: onCopy)
+            }
+        }
+    }
+}
+
+private struct EmojiCell: View {
+    let character: String
+    let name: String
+    let size: CGFloat
+    let cell: CGFloat
+    let onCopy: (String) -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button {
+            onCopy(character)
+        } label: {
+            Text(character)
+                .font(.system(size: size))
+                .frame(width: cell, height: cell)
+                .background(
+                    RoundedRectangle(cornerRadius: NotchStyle.Tab.radius, style: .continuous)
+                        .fill(isHovered ? NotchStyle.Palette.selection : Color.clear)
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .help(name.capitalized)
+        .accessibilityLabel(name)
     }
 }
 

@@ -19,49 +19,13 @@ struct AskPanel: View {
     }
 
     private var chat: some View {
-        VStack(spacing: NotchStyle.Space.s) {
-            if ask.transcript.isEmpty && !ask.isThinking {
-                EmptyToolState(symbol: "sparkles", title: AskAvailability.available.title, message: AskAvailability.available.message)
-            } else {
-                ScrollViewReader { proxy in
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
-                            ForEach(ask.transcript.messages) { message in
-                                MessageBubble(message: message).id(message.id)
-                            }
-                            if ask.isThinking {
-                                ThinkingDots().id("thinking")
-                            }
-                        }
-                    }
-                    .onChange(of: ask.transcript.messages.count) { _, _ in
-                        scrollToEnd(proxy)
-                    }
-                    .onChange(of: ask.isThinking) { _, _ in
-                        scrollToEnd(proxy)
-                    }
-                }
-            }
-
-            HStack(spacing: NotchStyle.Space.s) {
-                TextField("Ask anything, then Return", text: $draft)
-                    .textFieldStyle(.plain)
-                    .font(NotchStyle.Font.body)
-                    .padding(.horizontal, NotchStyle.Space.m)
-                    .frame(height: NotchStyle.Chip.height + NotchStyle.Space.xs)
-                    .background(
-                        RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                            .fill(NotchStyle.Palette.rowBackground)
-                    )
-                    .onSubmit { submit() }
-                    .disabled(ask.isThinking)
-                IconButton(symbol: "arrow.up.circle.fill", label: "Send", size: NotchStyle.Ask.sendSize) { submit() }
-                    .disabled(ask.isThinking || draft.trimmingCharacters(in: .whitespaces).isEmpty)
-                if !ask.transcript.isEmpty {
-                    IconButton(symbol: "square.and.pencil", label: "New chat") { ask.newChat() }
-                }
-            }
-        }
+        AskContent(
+            messages: ask.transcript.messages,
+            isThinking: ask.isThinking,
+            draft: $draft,
+            onSend: { submit() },
+            onNewChat: { ask.newChat() }
+        )
     }
 
     private var unavailable: some View {
@@ -90,11 +54,83 @@ struct AskPanel: View {
         ask.send(text)
     }
 
+}
+
+/// The conversation and the input, from plain values so it can also be
+/// drawn with sample data. Empty, it is one large question.
+struct AskContent: View {
+    let messages: [ChatMessage]
+    let isThinking: Bool
+    @Binding var draft: String
+    let onSend: () -> Void
+    let onNewChat: () -> Void
+
+    @Environment(\.isSnapshot) private var isSnapshot
+
+    var body: some View {
+        VStack(spacing: NotchStyle.Space.s) {
+            if messages.isEmpty && !isThinking {
+                VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
+                    Spacer(minLength: 0)
+                    Text("What can I help with?")
+                        .font(NotchStyle.Font.prompt)
+                        .tracking(-0.5)
+                        .foregroundStyle(NotchStyle.Palette.primaryText)
+                    Text("Answers come from Apple Intelligence on this Mac. Nothing you type leaves it.")
+                        .font(NotchStyle.Font.subtitle)
+                        .foregroundStyle(NotchStyle.Palette.secondaryText)
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else if isSnapshot {
+                transcript.frame(maxHeight: .infinity, alignment: .bottom)
+            } else {
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) { transcript }
+                        .onChange(of: messages.count) { _, _ in scrollToEnd(proxy) }
+                        .onChange(of: isThinking) { _, _ in scrollToEnd(proxy) }
+                        .onAppear { scrollToEnd(proxy) }
+                }
+            }
+
+            HStack(spacing: NotchStyle.Space.s) {
+                NotchTextField(placeholder: "Ask anything", text: $draft, symbol: "sparkles", onSubmit: onSend)
+                    .disabled(isThinking)
+                if !messages.isEmpty {
+                    RoundIconButton(symbol: "square.and.pencil", label: "New chat", size: NotchStyle.Field.height, action: onNewChat)
+                }
+                RoundIconButton(
+                    symbol: "arrow.up",
+                    label: "Send",
+                    kind: canSend ? .primary : .secondary,
+                    size: NotchStyle.Field.height,
+                    action: onSend
+                )
+                .disabled(!canSend)
+            }
+        }
+    }
+
+    private var canSend: Bool {
+        !isThinking && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var transcript: some View {
+        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
+            ForEach(messages) { message in
+                MessageBubble(message: message).id(message.id)
+            }
+            if isThinking {
+                ThinkingDots().id("thinking")
+            }
+        }
+    }
+
     private func scrollToEnd(_ proxy: ScrollViewProxy) {
         withAnimation(.easeOut(duration: 0.2)) {
-            if ask.isThinking {
+            if isThinking {
                 proxy.scrollTo("thinking", anchor: .bottom)
-            } else if let last = ask.transcript.messages.last {
+            } else if let last = messages.last {
                 proxy.scrollTo(last.id, anchor: .bottom)
             }
         }
@@ -111,11 +147,11 @@ private struct MessageBubble: View {
                 .font(NotchStyle.Font.body)
                 .foregroundStyle(message.role == .notice ? NotchStyle.Palette.overdue : NotchStyle.Palette.primaryText)
                 .textSelection(.enabled)
-                .padding(.horizontal, NotchStyle.Space.m)
-                .padding(.vertical, NotchStyle.Space.xs + 1)
+                .padding(.horizontal, NotchStyle.Space.m + 2)
+                .padding(.vertical, NotchStyle.Space.s)
                 .background(
                     RoundedRectangle(cornerRadius: NotchStyle.Ask.bubbleRadius, style: .continuous)
-                        .fill(message.role == .user ? NotchStyle.Palette.selection : NotchStyle.Palette.rowBackground)
+                        .fill(message.role == .user ? NotchStyle.Palette.raised : NotchStyle.Palette.rowBackground)
                 )
             if message.role != .user { Spacer(minLength: NotchStyle.Ask.bubbleInset) }
         }

@@ -90,29 +90,42 @@ struct TeleprompterPanel: View {
     @State private var textHeight: CGFloat = 0
 
     var body: some View {
-        VStack(spacing: NotchStyle.Space.s) {
+        VStack(spacing: NotchStyle.Space.m) {
             if editing || prompter.text.isEmpty {
                 TextEditor(text: $prompter.text)
-                    .font(NotchStyle.Font.body)
+                    .font(NotchStyle.Font.notes)
                     .scrollContentBackground(.hidden)
-                    .padding(NotchStyle.Space.xs)
-                    .background(
-                        RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                            .fill(NotchStyle.Palette.rowBackground)
-                    )
+                    .padding(NotchStyle.Space.s)
+                    .background(NotchCardBackground(radius: NotchStyle.Card.radius + 4))
                     .overlay(alignment: .topLeading) {
                         if prompter.text.isEmpty {
                             Text("Paste or type your script here")
-                                .font(NotchStyle.Font.body)
-                                .foregroundStyle(NotchStyle.Palette.secondaryText)
-                                .padding(NotchStyle.Space.m)
+                                .font(NotchStyle.Font.notes)
+                                .foregroundStyle(NotchStyle.Palette.tertiaryText)
+                                .padding(NotchStyle.Space.m + 2)
                                 .allowsHitTesting(false)
                         }
                     }
             } else {
                 reader
             }
-            controls
+            TeleprompterControls(
+                isPlaying: prompter.isPlaying,
+                isEditing: editing,
+                hasText: !prompter.text.isEmpty,
+                speed: Binding(get: { prompter.speed }, set: { prompter.setSpeed($0) }),
+                onEdit: {
+                    prompter.pause()
+                    editing.toggle()
+                },
+                onPlayPause: {
+                    editing = false
+                    prompter.isPlaying ? prompter.pause() : prompter.play()
+                },
+                onRestart: { prompter.restart() },
+                onSmaller: { prompter.fontSize = TeleprompterService.fontRange.clamped(prompter.fontSize - 2) },
+                onLarger: { prompter.fontSize = TeleprompterService.fontRange.clamped(prompter.fontSize + 2) }
+            )
         }
     }
 
@@ -120,12 +133,8 @@ struct TeleprompterPanel: View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !prompter.isPlaying)) { context in
             let offset = prompter.offset(at: context.date)
             GeometryReader { geometry in
-                Text(prompter.text)
-                    .font(.system(size: prompter.fontSize, weight: .medium))
-                    .foregroundStyle(NotchStyle.Palette.primaryText)
-                    .lineSpacing(prompter.fontSize * 0.25)
-                    .frame(width: geometry.size.width, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
+                ScriptText(text: prompter.text, fontSize: prompter.fontSize)
+                    .frame(width: geometry.size.width)
                     .background(
                         GeometryReader { text in
                             Color.clear
@@ -139,45 +148,93 @@ struct TeleprompterPanel: View {
                     }
             }
             .clipped()
+            .mask(ScriptFade())
         }
         .accessibilityLabel("Script")
         .accessibilityValue(prompter.text)
     }
+}
 
-    private var controls: some View {
-        HStack(spacing: NotchStyle.Space.s) {
-            Button(editing ? "Done" : "Edit") {
-                prompter.pause()
-                editing.toggle()
-            }
-            .buttonStyle(ChipButtonStyle())
-            .disabled(prompter.text.isEmpty && !editing)
+/// The script, centred, at the reading size.
+struct ScriptText: View {
+    let text: String
+    let fontSize: CGFloat
 
-            IconButton(symbol: prompter.isPlaying ? "pause.fill" : "play.fill", label: prompter.isPlaying ? "Pause" : "Play") {
-                editing = false
-                prompter.isPlaying ? prompter.pause() : prompter.play()
-            }
-            .disabled(prompter.text.isEmpty)
-            IconButton(symbol: "backward.end.fill", label: "Back to the start") { prompter.restart() }
+    var body: some View {
+        Text(text)
+            .font(.system(size: fontSize, weight: .medium))
+            .foregroundStyle(NotchStyle.Palette.primaryText)
+            .lineSpacing(fontSize * 0.25)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
 
-            Image(systemName: "tortoise")
-                .foregroundStyle(NotchStyle.Palette.secondaryText)
-            Slider(
-                value: Binding(get: { prompter.speed }, set: { prompter.setSpeed($0) }),
-                in: TeleprompterService.speedRange
-            )
-            .controlSize(.mini)
-            .accessibilityLabel("Scroll speed")
-            Image(systemName: "hare")
-                .foregroundStyle(NotchStyle.Palette.secondaryText)
-
-            IconButton(symbol: "textformat.size.smaller", label: "Smaller text") {
-                prompter.fontSize = TeleprompterService.fontRange.clamped(prompter.fontSize - 2)
-            }
-            IconButton(symbol: "textformat.size.larger", label: "Larger text") {
-                prompter.fontSize = TeleprompterService.fontRange.clamped(prompter.fontSize + 2)
-            }
+/// Lines fade in at the bottom and out at the top, so the eye stays on the
+/// middle of the script.
+struct ScriptFade: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom)
+                .frame(height: NotchStyle.Teleprompter.fade)
+            Color.black
+            LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: NotchStyle.Teleprompter.fade)
         }
-        .font(NotchStyle.Font.caption)
+    }
+}
+
+/// Edit, play and restart in round buttons, then speed and text size.
+struct TeleprompterControls: View {
+    let isPlaying: Bool
+    let isEditing: Bool
+    let hasText: Bool
+    @Binding var speed: Double
+    let onEdit: () -> Void
+    let onPlayPause: () -> Void
+    let onRestart: () -> Void
+    let onSmaller: () -> Void
+    let onLarger: () -> Void
+
+    @Environment(\.isSnapshot) private var isSnapshot
+
+    var body: some View {
+        HStack(spacing: NotchStyle.Space.s) {
+            let small = NotchStyle.RoundButton.small
+            RoundIconButton(symbol: isEditing ? "checkmark" : "pencil", label: isEditing ? "Done editing" : "Edit script", size: small, action: onEdit)
+                .disabled(!hasText && !isEditing)
+            RoundIconButton(
+                symbol: isPlaying ? "pause.fill" : "play.fill",
+                label: isPlaying ? "Pause" : "Play",
+                kind: .primary,
+                size: NotchStyle.Teleprompter.playSize,
+                action: onPlayPause
+            )
+            .disabled(!hasText)
+            RoundIconButton(symbol: "arrow.counterclockwise", label: "Back to the start", size: small, action: onRestart)
+
+            HStack(spacing: NotchStyle.Space.xs) {
+                Image(systemName: "tortoise.fill")
+                if isSnapshot {
+                    MeterBar(fraction: (speed - TeleprompterService.speedRange.lowerBound)
+                        / (TeleprompterService.speedRange.upperBound - TeleprompterService.speedRange.lowerBound))
+                        .frame(width: NotchStyle.Teleprompter.sliderWidth)
+                } else {
+                    Slider(value: $speed, in: TeleprompterService.speedRange)
+                        .controlSize(.small)
+                        .frame(width: NotchStyle.Teleprompter.sliderWidth)
+                        .accessibilityLabel("Scroll speed")
+                }
+                Image(systemName: "hare.fill")
+            }
+            .font(.system(size: NotchStyle.Row.iconSize))
+            .foregroundStyle(NotchStyle.Palette.tertiaryText)
+            .padding(.leading, NotchStyle.Space.m)
+
+            IconButton(symbol: "textformat.size.smaller", label: "Smaller text", action: onSmaller)
+            IconButton(symbol: "textformat.size.larger", label: "Larger text", action: onLarger)
+        }
+        .frame(maxWidth: .infinity)
     }
 }

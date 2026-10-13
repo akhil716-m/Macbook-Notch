@@ -3,34 +3,53 @@ import SwiftUI
 
 // MARK: Notes
 
-/// The Notes tool: one scratchpad, saved as you type.
+/// The Notes tool: one scratchpad on a full-size card, saved as you type.
 struct NotesPanel: View {
     @ObservedObject var notes: NotesService
 
     var body: some View {
-        VStack(alignment: .leading, spacing: NotchStyle.Space.xs) {
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: $notes.text)
-                    .font(NotchStyle.Font.body)
+        NotesContent(text: $notes.text, wordCount: notes.wordCount)
+    }
+}
+
+struct NotesContent: View {
+    @Binding var text: String
+    let wordCount: Int
+
+    @Environment(\.isSnapshot) private var isSnapshot
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            if isSnapshot {
+                Text(text)
+                    .font(NotchStyle.Font.notes)
+                    .foregroundStyle(NotchStyle.Palette.primaryText)
+                    .lineSpacing(NotchStyle.Space.xxs)
+                    .padding(.horizontal, NotchStyle.Space.xs + 1)
+            } else {
+                TextEditor(text: $text)
+                    .font(NotchStyle.Font.notes)
+                    .lineSpacing(NotchStyle.Space.xxs)
                     .scrollContentBackground(.hidden)
-                    .padding(NotchStyle.Space.xs)
                     .accessibilityLabel("Notes")
-                if notes.text.isEmpty {
-                    Text("Jot something down…")
-                        .font(NotchStyle.Font.body)
-                        .foregroundStyle(NotchStyle.Palette.secondaryText)
-                        .padding(.horizontal, NotchStyle.Space.m + 1)
-                        .padding(.vertical, NotchStyle.Space.xs)
-                        .allowsHitTesting(false)
-                }
             }
-            .background(
-                RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                    .fill(NotchStyle.Palette.rowBackground)
-            )
-            Text(notes.wordCount == 1 ? "1 word" : "\(notes.wordCount) words")
+            if text.isEmpty {
+                Text("Jot something down…")
+                    .font(NotchStyle.Font.notes)
+                    .foregroundStyle(NotchStyle.Palette.tertiaryText)
+                    .padding(.horizontal, NotchStyle.Space.xs + 1)
+                    .allowsHitTesting(false)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(NotchStyle.Card.padding)
+        .padding(.bottom, NotchStyle.Space.l)
+        .background(NotchCardBackground(radius: NotchStyle.Card.radius + 4))
+        .overlay(alignment: .bottomTrailing) {
+            Text(wordCount == 1 ? "1 word" : "\(wordCount) words")
                 .font(NotchStyle.Font.caption)
-                .foregroundStyle(NotchStyle.Palette.secondaryText)
+                .foregroundStyle(NotchStyle.Palette.tertiaryText)
+                .padding(NotchStyle.Card.padding)
         }
     }
 }
@@ -44,43 +63,77 @@ struct TodosPanel: View {
     @State private var draft = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
-            HStack(spacing: NotchStyle.Space.s) {
-                TextField("Add a to-do and press Return", text: $draft)
-                    .textFieldStyle(.plain)
-                    .font(NotchStyle.Font.body)
-                    .padding(.horizontal, NotchStyle.Space.m)
-                    .frame(height: NotchStyle.Chip.height + NotchStyle.Space.xs)
-                    .background(
-                        RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                            .fill(NotchStyle.Palette.rowBackground)
-                    )
-                    .onSubmit {
-                        todos.add(draft)
-                        draft = ""
-                    }
-                if todos.list.hasCompleted {
-                    Button("Clear done") { todos.clearCompleted() }
+        TodosContent(
+            items: todos.list.items,
+            draft: $draft,
+            showsRemove: model.optionHeld,
+            onAdd: {
+                todos.add(draft)
+                draft = ""
+            },
+            onToggle: { todos.toggle($0) },
+            onRemove: { todos.remove($0) },
+            onClearDone: { todos.clearCompleted() }
+        )
+    }
+}
+
+/// The count on the left, the list on the right. From plain values so it
+/// can also be drawn with sample data.
+struct TodosContent: View {
+    let items: [TodoItem]
+    @Binding var draft: String
+    let showsRemove: Bool
+    let onAdd: () -> Void
+    let onToggle: (TodoItem) -> Void
+    let onRemove: (TodoItem) -> Void
+    let onClearDone: () -> Void
+
+    var body: some View {
+        let open = items.filter { !$0.isDone }.count
+        let done = items.count - open
+        HStack(alignment: .top, spacing: NotchStyle.Space.xl) {
+            CountSummary(
+                count: open,
+                label: open == 1 ? "thing to do" : "things to do",
+                detail: done > 0 ? "\(done) done" : nil
+            ) {
+                if done > 0 {
+                    Button("Clear done", action: onClearDone)
                         .buttonStyle(ChipButtonStyle())
                 }
             }
-
-            if todos.list.items.isEmpty {
-                EmptyToolState(symbol: "checklist", title: "Nothing to do", message: "Add something above when it comes up.")
-            } else {
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: NotchStyle.Space.xxs) {
-                        ForEach(todos.list.items) { item in
-                            TodoRow(
-                                item: item,
-                                showsRemove: model.optionHeld,
-                                onToggle: { todos.toggle(item) },
-                                onRemove: { todos.remove(item) }
-                            )
+            VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
+                NotchTextField(placeholder: "Add a to-do", text: $draft, onSubmit: onAdd)
+                if items.isEmpty {
+                    Text("Nothing on the list. Type above and press Return.")
+                        .font(NotchStyle.Font.body)
+                        .foregroundStyle(NotchStyle.Palette.secondaryText)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    Group {
+                        if items.count <= NotchStyle.Todo.rowsWithoutScrolling {
+                            VStack(spacing: 0) { rows }
+                        } else {
+                            ScrollView(.vertical, showsIndicators: false) {
+                                LazyVStack(spacing: 0) { rows }
+                            }
                         }
                     }
+                    .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
+        }
+    }
+
+    private var rows: some View {
+        ForEach(items) { item in
+            TodoRow(
+                item: item,
+                showsRemove: showsRemove,
+                onToggle: { onToggle(item) },
+                onRemove: { onRemove(item) }
+            )
         }
     }
 }
@@ -91,28 +144,37 @@ private struct TodoRow: View {
     let onToggle: () -> Void
     let onRemove: () -> Void
 
+    @State private var isHovered = false
+
     var body: some View {
         HStack(spacing: NotchStyle.Space.m) {
             Button(action: onToggle) {
                 Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: NotchStyle.Row.iconSize + 2))
+                    .font(.system(size: NotchStyle.Todo.checkSize))
                     .foregroundStyle(item.isDone ? NotchStyle.Palette.accent : NotchStyle.Palette.secondaryText)
+                    .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(item.isDone ? "Mark as not done" : "Mark as done")
+            .accessibilityLabel(item.isDone ? "Mark \(item.title) as not done" : "Mark \(item.title) as done")
 
             Text(item.title)
                 .font(NotchStyle.Font.body)
-                .strikethrough(item.isDone)
-                .foregroundStyle(item.isDone ? NotchStyle.Palette.secondaryText : NotchStyle.Palette.primaryText)
+                .strikethrough(item.isDone, color: NotchStyle.Palette.tertiaryText)
+                .foregroundStyle(item.isDone ? NotchStyle.Palette.tertiaryText : NotchStyle.Palette.primaryText)
                 .lineLimit(1)
             Spacer(minLength: 0)
             if showsRemove {
-                IconButton(symbol: "xmark", label: "Delete", action: onRemove)
+                IconButton(symbol: "xmark", label: "Delete \(item.title)", action: onRemove)
             }
         }
-        .padding(.horizontal, NotchStyle.Space.m)
-        .padding(.vertical, NotchStyle.Space.xxs)
+        .padding(.horizontal, NotchStyle.Space.s)
+        .padding(.vertical, NotchStyle.Space.xs + 1)
+        .background(
+            RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
+                .fill(isHovered ? NotchStyle.Palette.rowBackground : Color.clear)
+        )
+        .contentShape(Rectangle())
+        .onHover { isHovered = $0 }
         .contextMenu {
             Button(item.isDone ? "Mark as Not Done" : "Mark as Done", action: onToggle)
             Button("Delete", role: .destructive, action: onRemove)

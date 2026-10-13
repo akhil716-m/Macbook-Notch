@@ -1,6 +1,7 @@
 import AppKit
 import NotchCore
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Draws the design system and a few panels with sample content to PNGs,
 /// so the look can be checked on a Mac without running the app by hand.
@@ -29,13 +30,26 @@ enum DesignSnapshots {
             ("panel-calendar", AnyView(SamplePanel(title: "Calendar", selected: .calendar, tools: tools) { SampleCalendar() })),
             ("panel-weather", AnyView(SamplePanel(title: "Weather", selected: .weather, tools: tools) { SampleWeather() })),
             ("panel-keep-awake", AnyView(SamplePanel(title: "Keep Awake", selected: .keepAwake, tools: tools) { SampleKeepAwake() })),
+            ("panel-shelf", AnyView(SamplePanel(title: "Shelf", selected: .shelf, tools: tools) { SampleShelf(empty: false) })),
+            ("panel-shelf-empty", AnyView(SamplePanel(title: "Shelf", selected: .shelf, tools: tools) { SampleShelf(empty: true) })),
+            ("panel-clipboard", AnyView(SamplePanel(title: "Clipboard", selected: .clipboard, tools: tools) { SampleClipboard() })),
+            ("panel-todos", AnyView(SamplePanel(title: "To-dos", selected: .todos, tools: tools) { SampleTodos() })),
+            ("panel-notes", AnyView(SamplePanel(title: "Notes", selected: .notes, tools: tools) { SampleNotes() })),
+            ("panel-reminders", AnyView(SamplePanel(title: "Reminders", selected: .reminders, tools: tools) { SampleReminders() })),
+            ("panel-ask", AnyView(SamplePanel(title: "Ask", selected: .ask, tools: tools) { SampleAsk(empty: false) })),
+            ("panel-ask-empty", AnyView(SamplePanel(title: "Ask", selected: .ask, tools: tools) { SampleAsk(empty: true) })),
+            ("panel-ai-usage", AnyView(SamplePanel(title: "AI Usage", selected: .aiUsage, tools: tools) { SampleAIUsage() })),
+            ("panel-teleprompter", AnyView(SamplePanel(title: "Teleprompter", selected: .teleprompter, tools: tools) { SampleTeleprompter() })),
+            ("panel-emoji", AnyView(SamplePanel(title: "Emoji", selected: .emoji, tools: tools) { SampleEmoji() })),
+            ("panel-stocks", AnyView(SamplePanel(title: "Stocks", selected: .stocks, tools: tools) { SampleStocks() })),
+            ("panel-revenue", AnyView(SamplePanel(title: "Revenue", selected: .revenue, tools: tools) { SampleRevenue() })),
             ("panel-music", AnyView(SamplePanel(title: "Now Playing", selected: .nowPlaying, tools: tools) { SampleMusic() })),
             ("panel-timers", AnyView(SamplePanel(title: "Timers", selected: .timers, tools: tools, pinned: true) { SampleTimers() })),
             ("compact", AnyView(SampleCompact())),
             ("primitives", AnyView(SamplePrimitives())),
         ]
         for (name, view) in pages {
-            let renderer = ImageRenderer(content: view.environment(\.colorScheme, .dark))
+            let renderer = ImageRenderer(content: view.environment(\.colorScheme, .dark).environment(\.isSnapshot, true))
             renderer.scale = 2
             guard let image = renderer.nsImage,
                   let tiff = image.tiffRepresentation,
@@ -207,6 +221,175 @@ private struct SampleKeepAwake: View {
             onChoose: { _ in },
             onDisplayOn: { _ in }
         )
+    }
+}
+
+private struct SampleShelf: View {
+    let empty: Bool
+
+    var body: some View {
+        let now = Date()
+        let files: [(String, UTType)] = [
+            ("Q3 report.pdf", .pdf), ("Hero shot.png", .png), ("Invoice 2041.pdf", .pdf),
+            ("Demo.mov", .quickTimeMovie), ("Notes.txt", .plainText),
+        ]
+        let items: [ShelfItem] = empty ? [] : files.map { file in
+            ShelfItem(id: UUID(), filename: file.0, relativePath: file.0, isDirectory: false, byteSize: 1_000, addedAt: now, expiresAt: nil)
+        }
+        let types = Dictionary(uniqueKeysWithValues: files)
+        ShelfContent(
+            items: items,
+            notice: nil,
+            retention: .oneDay,
+            canAirDrop: true,
+            showsRemove: false,
+            isDropTargeted: false,
+            icon: { NSWorkspace.shared.icon(for: types[$0.filename] ?? .data) },
+            dragURL: { _ in nil },
+            onAirDropAll: {},
+            onOpen: { _ in },
+            onReveal: { _ in },
+            onAirDrop: { _ in },
+            onRemove: { _ in }
+        )
+    }
+}
+
+private struct SampleClipboard: View {
+    var body: some View {
+        let now = Date()
+        let clips = [
+            Clip(kind: .link, text: "https://developer.apple.com/documentation/swiftui", sourceAppName: "Safari",
+                 copiedAt: now.addingTimeInterval(-40), contentHash: "1"),
+            Clip(kind: .text, text: "Ship the notch build before the demo on Thursday.", sourceAppName: "Notes",
+                 copiedAt: now.addingTimeInterval(-600), contentHash: "2"),
+            Clip(kind: .files, filePaths: ["/Users/sample/Desktop/Q3 report.pdf"], sourceAppName: "Finder",
+                 copiedAt: now.addingTimeInterval(-3_600), contentHash: "3"),
+            Clip(kind: .text, text: "let spring = Animation.spring(response: 0.38, dampingFraction: 0.82)", sourceAppName: "Xcode",
+                 copiedAt: now.addingTimeInterval(-7_200), contentHash: "4"),
+        ]
+        ClipboardContent(clips: clips, thumbnail: { _ in nil }, recentlyCopiedID: clips[1].id,
+                         showsRemove: false, onCopy: { _ in }, onRemove: { _ in })
+    }
+}
+
+private struct SampleTodos: View {
+    var body: some View {
+        var list = TodoList()
+        let now = Date()
+        list.add("Reply to the design review notes", at: now)
+        list.add("Book the dentist", at: now.addingTimeInterval(1))
+        let done = list.add("Send the Q3 report", at: now.addingTimeInterval(2))
+        list.add("Water the plants", at: now.addingTimeInterval(3))
+        if let done { list.toggle(done.id, at: now.addingTimeInterval(4)) }
+        return TodosContent(items: list.items, draft: .constant(""), showsRemove: false,
+                            onAdd: {}, onToggle: { _ in }, onRemove: { _ in }, onClearDone: {})
+    }
+}
+
+private struct SampleNotes: View {
+    var body: some View {
+        let text = "Demo checklist\n\nOpen with the closed notch and a timer running. Hover to show the panel, then drop the deck on the Shelf.\nEnd on Calendar: next week is free."
+        NotesContent(text: .constant(text), wordCount: Scratchpad(text: text).wordCount)
+    }
+}
+
+private struct SampleReminders: View {
+    var body: some View {
+        let calendar = Calendar.current
+        let now = Date()
+        let today = calendar.startOfDay(for: now)
+        let items = [
+            ReminderItem(id: "1", title: "Renew passport", dueDate: calendar.date(byAdding: .day, value: -2, to: today), color: ColorComponents(red: 1, green: 0.6, blue: 0.2)),
+            ReminderItem(id: "2", title: "Call the bank", dueDate: now.addingTimeInterval(3_600 * 3), dueHasTime: true),
+            ReminderItem(id: "3", title: "Pick up the parcel", dueDate: calendar.date(byAdding: .day, value: 1, to: today)),
+            ReminderItem(id: "4", title: "Plan the team offsite"),
+        ]
+        RemindersContent(items: items, draft: .constant(""), isLoading: false, now: now,
+                         onAdd: {}, onComplete: { _ in }, onOpenApp: {})
+    }
+}
+
+private struct SampleAsk: View {
+    let empty: Bool
+
+    var body: some View {
+        let messages = empty ? [] : [
+            ChatMessage(role: .user, text: "Make this shorter: we're going to need to push the launch back a week because the build isn't ready."),
+            ChatMessage(role: .assistant, text: "The build isn't ready, so we're moving the launch back a week."),
+        ]
+        AskContent(messages: messages, isThinking: false, draft: .constant(""), onSend: {}, onNewChat: {})
+    }
+}
+
+private struct SampleAIUsage: View {
+    var body: some View {
+        let now = Date()
+        AIUsageContent(
+            claude: AIUsageService.ClaudeSummary(
+                foundLogs: true,
+                block: UsageBlock(start: now.addingTimeInterval(-7_200), end: now.addingTimeInterval(10_800), tokens: 1_240_000, lastActivity: now),
+                lastWeek: 8_400_000
+            ),
+            codex: AIUsageService.CodexSummary(
+                foundLogs: true,
+                limits: RateLimits(
+                    primary: RateLimitWindow(usedPercent: 61, windowMinutes: 300, resetsAt: now.addingTimeInterval(5_400)),
+                    secondary: RateLimitWindow(usedPercent: 34, windowMinutes: 10_080, resetsAt: now.addingTimeInterval(300_000)),
+                    observedAt: now
+                ),
+                lastWeek: 2_100_000
+            ),
+            now: now
+        )
+    }
+}
+
+private struct SampleTeleprompter: View {
+    var body: some View {
+        VStack(spacing: NotchStyle.Space.m) {
+            ScriptText(text: "That means better prompts aren't always the answer.\n\nSmarter context and fewer repeats make an agent cheaper to run.", fontSize: 20)
+                .frame(maxHeight: .infinity, alignment: .top)
+                .clipped()
+                .mask(ScriptFade())
+            TeleprompterControls(isPlaying: true, isEditing: false, hasText: true, speed: .constant(32),
+                                 onEdit: {}, onPlayPause: {}, onRestart: {}, onSmaller: {}, onLarger: {})
+        }
+    }
+}
+
+private struct SampleEmoji: View {
+    var body: some View {
+        EmojiContent(query: .constant(""), recent: ["👍", "🎉", "😂", "🙏", "🔥", "✅", "👀", "🚀"],
+                     results: Array(EmojiCatalog.all.prefix(120)), copied: "🎉", onCopy: { _ in })
+    }
+}
+
+private struct SampleStocks: View {
+    var body: some View {
+        let now = Date()
+        let quotes = [
+            "AAPL": StockQuote(symbol: "AAPL", price: 241.07, change: 3.6, changePercent: 1.53, fetchedAt: now),
+            "MSFT": StockQuote(symbol: "MSFT", price: 516.17, change: 18.2, changePercent: 3.66, fetchedAt: now),
+            "RELIANCE.NS": StockQuote(symbol: "RELIANCE.NS", price: 1_402.5, change: -9.1, changePercent: -0.64, fetchedAt: now),
+            "TSLA": StockQuote(symbol: "TSLA", price: 438.69, change: -6.2, changePercent: -1.39, fetchedAt: now),
+        ]
+        StocksContent(symbols: ["AAPL", "MSFT", "RELIANCE.NS", "TSLA"], quotes: quotes, problem: nil)
+    }
+}
+
+private struct SampleRevenue: View {
+    var body: some View {
+        let stripe = RevenueSource(provider: .stripe, name: "Notch app")
+        let shopify = RevenueSource(provider: .shopify, name: "Merch store")
+        var stripeTotals = MoneyTotals()
+        stripeTotals.add(4_900, currency: "USD")
+        stripeTotals.add(14_900, currency: "USD")
+        stripeTotals.add(2_900, currency: "USD")
+        var shopifyTotals = MoneyTotals()
+        shopifyTotals.add(12_800, currency: "USD")
+        let states: [UUID: RevenueService.SourceState] = [stripe.id: .loaded(stripeTotals), shopify.id: .loaded(shopifyTotals)]
+        return RevenueContent(sources: [stripe, shopify], states: states, combined: stripeTotals + shopifyTotals, onRefresh: {})
     }
 }
 

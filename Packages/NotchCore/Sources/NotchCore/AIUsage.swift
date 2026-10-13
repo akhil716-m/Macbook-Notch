@@ -211,6 +211,13 @@ public struct UsageBlock: Equatable, Sendable {
     public var tokens: Int
     public var lastActivity: Date
 
+    public init(start: Date, end: Date, tokens: Int, lastActivity: Date) {
+        self.start = start
+        self.end = end
+        self.tokens = tokens
+        self.lastActivity = lastActivity
+    }
+
     public func isActive(at date: Date) -> Bool {
         date < end && date >= start
     }

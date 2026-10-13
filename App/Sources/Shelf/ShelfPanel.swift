@@ -10,75 +10,119 @@ struct ShelfPanel: View {
     let retention: ShelfRetention
 
     var body: some View {
-        ZStack {
-            if shelf.items.isEmpty {
+        ShelfContent(
+            items: shelf.items,
+            notice: shelf.notice,
+            retention: retention,
+            canAirDrop: shelf.canAirDrop,
+            showsRemove: model.optionHeld,
+            isDropTargeted: model.isDropTargeted,
+            icon: { NSWorkspace.shared.icon(forFile: shelf.fileURL(for: $0).path) },
+            dragURL: { shelf.fileURL(for: $0) },
+            onAirDropAll: { shelf.airDrop() },
+            onOpen: { shelf.open($0) },
+            onReveal: { shelf.revealInFinder($0) },
+            onAirDrop: { shelf.airDrop([$0]) },
+            onRemove: { shelf.remove($0) }
+        )
+    }
+}
+
+/// The shelf from plain values, so it can also be drawn with sample data.
+/// Empty, it is one large drop field; with files, a row of big tiles.
+struct ShelfContent: View {
+    let items: [ShelfItem]
+    let notice: String?
+    let retention: ShelfRetention
+    let canAirDrop: Bool
+    let showsRemove: Bool
+    let isDropTargeted: Bool
+    let icon: (ShelfItem) -> NSImage
+    let dragURL: (ShelfItem) -> URL?
+    let onAirDropAll: () -> Void
+    let onOpen: (ShelfItem) -> Void
+    let onReveal: (ShelfItem) -> Void
+    let onAirDrop: (ShelfItem) -> Void
+    let onRemove: (ShelfItem) -> Void
+
+    var body: some View {
+        Group {
+            if items.isEmpty {
                 emptyState
             } else {
                 filledState
             }
-            if model.isDropTargeted {
-                RoundedRectangle(cornerRadius: NotchStyle.Shelf.dropRadius, style: .continuous)
-                    .strokeBorder(NotchStyle.Palette.dropOutline, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
-                    .allowsHitTesting(false)
-            }
         }
+        .background(
+            // Dragging files over the notch lights up the whole shelf.
+            RoundedRectangle(cornerRadius: NotchStyle.Card.radius + 4, style: .continuous)
+                .fill(isDropTargeted ? NotchStyle.Palette.selection : Color.clear)
+        )
+        .animation(.easeOut(duration: 0.15), value: isDropTargeted)
     }
 
     private var emptyState: some View {
-        VStack(spacing: NotchStyle.Space.xs) {
+        VStack(spacing: NotchStyle.Space.s) {
             Image(systemName: "tray.and.arrow.down")
-                .font(.system(size: NotchStyle.Controls.playSize))
-                .foregroundStyle(NotchStyle.Palette.secondaryText)
-            Text(model.isDropTargeted ? "Let go to add" : "Drop files here")
-                .font(NotchStyle.Font.emptyTitle)
+                .font(.system(size: NotchStyle.Shelf.emptySymbol, weight: .light))
+                .foregroundStyle(isDropTargeted ? NotchStyle.Palette.primaryText : NotchStyle.Palette.secondaryText)
+            Text(isDropTargeted ? "Let go to add" : "Drop files here")
+                .font(NotchStyle.Font.title)
                 .foregroundStyle(NotchStyle.Palette.primaryText)
             Text(retentionText)
-                .font(NotchStyle.Font.emptyBody)
+                .font(NotchStyle.Font.subtitle)
                 .foregroundStyle(NotchStyle.Palette.secondaryText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(NotchCardBackground(radius: NotchStyle.Card.radius + 4).opacity(isDropTargeted ? 0 : 1))
     }
 
     private var filledState: some View {
-        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
+        VStack(alignment: .leading, spacing: NotchStyle.Space.m) {
             HStack(spacing: NotchStyle.Space.m) {
-                Text(shelf.notice ?? countText)
-                    .font(NotchStyle.Font.caption)
+                Text(notice ?? summary)
+                    .font(NotchStyle.Font.subtitle)
                     .foregroundStyle(NotchStyle.Palette.secondaryText)
                     .lineLimit(1)
                 Spacer()
-                if shelf.canAirDrop {
-                    Button {
-                        shelf.airDrop()
-                    } label: {
-                        Label("AirDrop", systemImage: "square.and.arrow.up")
-                            .font(NotchStyle.Font.caption)
+                if canAirDrop {
+                    Button(action: onAirDropAll) {
+                        Label("AirDrop all", systemImage: "square.and.arrow.up")
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(NotchStyle.Palette.primaryText)
+                    .buttonStyle(ChipButtonStyle())
                     .help("Send everything on the shelf with AirDrop")
                 }
             }
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: NotchStyle.Space.m) {
-                    ForEach(shelf.items) { item in
-                        ShelfTile(
-                            item: item,
-                            url: shelf.fileURL(for: item),
-                            showsRemove: model.optionHeld,
-                            onOpen: { shelf.open(item) },
-                            onReveal: { shelf.revealInFinder(item) },
-                            onAirDrop: { shelf.airDrop([item]) },
-                            onRemove: { shelf.remove(item) }
-                        )
-                    }
-                }
+            ViewThatFits(in: .horizontal) {
+                tiles
+                ScrollView(.horizontal, showsIndicators: false) { tiles }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var tiles: some View {
+        HStack(alignment: .top, spacing: NotchStyle.Space.s) {
+            ForEach(items) { item in
+                ShelfTile(
+                    item: item,
+                    icon: icon(item),
+                    dragURL: dragURL(item),
+                    showsRemove: showsRemove,
+                    onOpen: { onOpen(item) },
+                    onReveal: { onReveal(item) },
+                    onAirDrop: { onAirDrop(item) },
+                    onRemove: { onRemove(item) }
+                )
             }
         }
     }
 
-    private var countText: String {
-        shelf.items.count == 1 ? "1 item" : "\(shelf.items.count) items"
+    /// "3 files · kept for 1 day"
+    private var summary: String {
+        let count = items.count == 1 ? "1 file" : "\(items.count) files"
+        guard retention != .forever else { return count + " · kept until you remove them" }
+        return count + " · kept for \(retention.title)"
     }
 
     private var retentionText: String {
@@ -89,16 +133,19 @@ struct ShelfPanel: View {
 
 private struct ShelfTile: View {
     let item: ShelfItem
-    let url: URL
+    let icon: NSImage
+    let dragURL: URL?
     let showsRemove: Bool
     let onOpen: () -> Void
     let onReveal: () -> Void
     let onAirDrop: () -> Void
     let onRemove: () -> Void
 
+    @State private var isHovered = false
+
     var body: some View {
-        VStack(spacing: NotchStyle.Space.xs) {
-            Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
+        VStack(spacing: NotchStyle.Space.s) {
+            Image(nsImage: icon)
                 .resizable()
                 .frame(width: NotchStyle.Shelf.iconSize, height: NotchStyle.Shelf.iconSize)
             Text(item.filename)
@@ -107,8 +154,15 @@ private struct ShelfTile: View {
                 .lineLimit(2)
                 .truncationMode(.middle)
                 .multilineTextAlignment(.center)
+                .frame(height: NotchStyle.Shelf.nameHeight, alignment: .top)
         }
+        .padding(.vertical, NotchStyle.Space.m)
+        .padding(.horizontal, NotchStyle.Space.xs)
         .frame(width: NotchStyle.Shelf.tileWidth)
+        .background(
+            RoundedRectangle(cornerRadius: NotchStyle.Card.radius, style: .continuous)
+                .fill(isHovered ? NotchStyle.Palette.selection : NotchStyle.Palette.rowBackground)
+        )
         .overlay(alignment: .topTrailing) {
             if showsRemove {
                 Button(action: onRemove) {
@@ -117,12 +171,14 @@ private struct ShelfTile: View {
                         .foregroundStyle(NotchStyle.Palette.primaryText, NotchStyle.Palette.removeBackground)
                 }
                 .buttonStyle(.plain)
+                .offset(x: NotchStyle.Space.xs, y: -NotchStyle.Space.xs)
                 .accessibilityLabel("Remove \(item.filename)")
             }
         }
         .contentShape(Rectangle())
+        .onHover { isHovered = $0 }
         .onTapGesture(perform: onOpen)
-        .onDrag { NSItemProvider(contentsOf: url) ?? NSItemProvider() }
+        .onDrag { dragURL.flatMap { NSItemProvider(contentsOf: $0) } ?? NSItemProvider() }
         .contextMenu {
             Button("Open", action: onOpen)
             Button("Show in Finder", action: onReveal)

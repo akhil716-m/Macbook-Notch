@@ -155,6 +155,95 @@ struct HeaderIconButton: View {
     }
 }
 
+/// A large number with what it counts, for the left column of list tools
+/// (To-dos, Reminders). Anything passed in `footer` sits at the bottom.
+struct CountSummary<Footer: View>: View {
+    let count: Int
+    let label: String
+    var detail: String?
+    var detailTint: Color = NotchStyle.Palette.tertiaryText
+    @ViewBuilder var footer: () -> Footer
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NotchStyle.Space.xxs) {
+            Text("\(count)")
+                .font(NotchStyle.Font.hero)
+                .tracking(-1)
+                .foregroundStyle(NotchStyle.Palette.primaryText)
+                .contentTransition(.numericText())
+            Text(label)
+                .font(NotchStyle.Font.title)
+                .foregroundStyle(NotchStyle.Palette.secondaryText)
+            if let detail {
+                Text(detail)
+                    .font(NotchStyle.Font.caption)
+                    .foregroundStyle(detailTint)
+                    .padding(.top, NotchStyle.Space.xxs)
+            }
+            Spacer(minLength: NotchStyle.Space.s)
+            footer()
+        }
+        .frame(width: NotchStyle.Summary.width, alignment: .leading)
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+extension CountSummary where Footer == EmptyView {
+    init(count: Int, label: String, detail: String? = nil, detailTint: Color = NotchStyle.Palette.tertiaryText) {
+        self.init(count: count, label: label, detail: detail, detailTint: detailTint) { EmptyView() }
+    }
+}
+
+/// Snapshot rendering can't draw AppKit-backed controls; views that contain
+/// them show a stand-in when this is set.
+private struct SnapshotModeKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var isSnapshot: Bool {
+        get { self[SnapshotModeKey.self] }
+        set { self[SnapshotModeKey.self] = newValue }
+    }
+}
+
+/// A one-line text field on a tone-step field, with a leading symbol.
+/// Return submits.
+struct NotchTextField: View {
+    let placeholder: String
+    @Binding var text: String
+    var symbol = "plus"
+    let onSubmit: () -> Void
+
+    @Environment(\.isSnapshot) private var isSnapshot
+
+    var body: some View {
+        HStack(spacing: NotchStyle.Space.s) {
+            Image(systemName: symbol)
+                .font(.system(size: NotchStyle.Row.iconSize, weight: .semibold))
+                .foregroundStyle(NotchStyle.Palette.tertiaryText)
+            if isSnapshot {
+                Text(text.isEmpty ? placeholder : text)
+                    .font(NotchStyle.Font.body)
+                    .foregroundStyle(text.isEmpty ? NotchStyle.Palette.tertiaryText : NotchStyle.Palette.primaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                TextField(placeholder, text: $text)
+                    .textFieldStyle(.plain)
+                    .font(NotchStyle.Font.body)
+                    .onSubmit(onSubmit)
+            }
+        }
+        .padding(.horizontal, NotchStyle.Space.m)
+        .frame(height: NotchStyle.Field.height)
+        .background(
+            RoundedRectangle(cornerRadius: NotchStyle.Field.radius, style: .continuous)
+                .fill(NotchStyle.Palette.rowBackground)
+        )
+    }
+}
+
 /// A plain icon button used inside rows.
 struct IconButton: View {
     let symbol: String

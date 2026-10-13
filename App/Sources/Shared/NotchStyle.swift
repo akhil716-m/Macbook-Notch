@@ -55,7 +55,6 @@ enum NotchStyle {
         static let rowBackground = Color.white.opacity(0.07)
         /// Secondary round buttons and the sent chat bubble.
         static let raised = Color.white.opacity(0.24)
-        static let dropOutline = Color.white.opacity(0.7)
         static let removeBackground = Color.gray
         /// Running timers, Keep Awake, meters.
         static let accent = Color(red: 0.90, green: 0.59, blue: 0.25)
@@ -76,6 +75,9 @@ enum NotchStyle {
         static let tab = SwiftUI.Font.system(size: 15, weight: .medium)
         static let rowTitle = SwiftUI.Font.system(size: 13)
         static let monthDay = SwiftUI.Font.system(size: 12).monospacedDigit()
+        static let notes = SwiftUI.Font.system(size: 14)
+        /// The open question on an empty Ask.
+        static let prompt = SwiftUI.Font.system(size: 26, weight: .semibold)
         static let tileName = SwiftUI.Font.system(size: 11)
         static let body = SwiftUI.Font.system(size: 13)
         static let chip = SwiftUI.Font.system(size: 12, weight: .medium)
@@ -84,6 +86,8 @@ enum NotchStyle {
         static let statValue = SwiftUI.Font.system(size: 15, weight: .semibold).monospacedDigit()
         /// Big readouts: stopwatch, converter results.
         static let display = SwiftUI.Font.system(size: 36, weight: .regular).monospacedDigit()
+        /// The one very large number on a screen (counts in list tools).
+        static let hero = SwiftUI.Font.system(size: 52, weight: .light).monospacedDigit()
         static let compactIcon = SwiftUI.Font.system(size: 12, weight: .semibold)
         static let compactValue = SwiftUI.Font.system(size: 15, weight: .semibold).monospacedDigit()
     }
@@ -91,6 +95,22 @@ enum NotchStyle {
     enum Chip {
         static let height: CGFloat = 24
         static let horizontalPadding: CGFloat = 10
+    }
+
+    /// Text inputs.
+    enum Field {
+        static let height: CGFloat = 32
+        static let radius: CGFloat = 10
+    }
+
+    enum Todo {
+        static let checkSize: CGFloat = 16
+        static let rowsWithoutScrolling = 5
+    }
+
+    /// The count column on the left of list tools.
+    enum Summary {
+        static let width: CGFloat = 132
     }
 
     /// Dark grey fields, one tone step above the panel.
@@ -149,7 +169,13 @@ enum NotchStyle {
     enum Ask {
         static let sendSize: CGFloat = 16
         static let bubbleInset: CGFloat = 60
-        static let bubbleRadius: CGFloat = 10
+        static let bubbleRadius: CGFloat = 12
+    }
+
+    enum Teleprompter {
+        static let fade: CGFloat = 28
+        static let playSize: CGFloat = 40
+        static let sliderWidth: CGFloat = 110
     }
 
     enum Volume {
@@ -158,12 +184,20 @@ enum NotchStyle {
     }
 
     enum Emoji {
-        static let cell: CGFloat = 30
-        static let size: CGFloat = 20
+        static let cell: CGFloat = 32
+        static let size: CGFloat = 21
+        static let recentCell: CGFloat = 40
+        static let recentSize: CGFloat = 28
+        static let recentCount = 12
     }
 
     enum Stocks {
-        static let cardWidth: CGFloat = 100
+        static let badgeWidth: CGFloat = 72
+        static let rowsWithoutScrolling = 5
+    }
+
+    enum Revenue {
+        static let totalWidth: CGFloat = 200
     }
 
     /// Live activities in the closed notch.
@@ -196,18 +230,20 @@ enum NotchStyle {
 
     // MARK: Shelf
     enum Shelf {
-        static let iconSize: CGFloat = 44
-        static let tileWidth: CGFloat = 72
-        static let removeSize: CGFloat = 14
-        static let dropRadius: CGFloat = 14
+        static let iconSize: CGFloat = 52
+        static let tileWidth: CGFloat = 92
+        static let nameHeight: CGFloat = 28
+        static let removeSize: CGFloat = 16
+        static let emptySymbol: CGFloat = 30
     }
 
     // MARK: Clipboard
     enum Clipboard {
-        static let leadingSize: CGFloat = 26
-        static let leadingRadius: CGFloat = 6
-        static let rowRadius: CGFloat = 8
-        static let symbolSize: CGFloat = 11
+        static let leadingSize: CGFloat = 30
+        static let leadingRadius: CGFloat = 7
+        static let rowRadius: CGFloat = 10
+        static let symbolSize: CGFloat = 12
+        static let rowsWithoutScrolling = 4
     }
 
     // MARK: Media

@@ -9,34 +9,60 @@ struct ClipboardPanel: View {
     @ObservedObject var model: NotchViewModel
 
     var body: some View {
-        if clipboard.clips.isEmpty {
-            VStack(spacing: NotchStyle.Space.xs) {
-                Image(systemName: "doc.on.clipboard")
-                    .font(.system(size: NotchStyle.Controls.playSize))
-                    .foregroundStyle(NotchStyle.Palette.secondaryText)
-                Text("Nothing copied yet")
-                    .font(NotchStyle.Font.emptyTitle)
-                    .foregroundStyle(NotchStyle.Palette.primaryText)
-                Text("Copy text, links, images or files and they'll collect here.")
-                    .font(NotchStyle.Font.emptyBody)
-                    .foregroundStyle(NotchStyle.Palette.secondaryText)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ClipboardContent(
+            clips: clipboard.clips,
+            thumbnail: { $0.kind == .image ? clipboard.thumbnail(for: $0) : nil },
+            recentlyCopiedID: clipboard.recentlyCopiedID,
+            showsRemove: model.optionHeld,
+            onCopy: { clipboard.copy($0) },
+            onRemove: { clipboard.remove($0) }
+        )
+    }
+}
+
+/// The history from plain values, so it can also be drawn with sample data.
+/// Rows sit straight on the panel and light up under the pointer.
+struct ClipboardContent: View {
+    let clips: [Clip]
+    let thumbnail: (Clip) -> NSImage?
+    let recentlyCopiedID: UUID?
+    let showsRemove: Bool
+    let onCopy: (Clip) -> Void
+    let onRemove: (Clip) -> Void
+
+    var body: some View {
+        if clips.isEmpty {
+            EmptyToolState(
+                symbol: "doc.on.clipboard",
+                title: "Nothing copied yet",
+                message: "Copy text, links, images or files and they'll collect here."
+            )
         } else {
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(spacing: NotchStyle.Space.xxs) {
-                    ForEach(clipboard.clips) { clip in
-                        ClipRow(
-                            clip: clip,
-                            thumbnail: clip.kind == .image ? clipboard.thumbnail(for: clip) : nil,
-                            justCopied: clipboard.recentlyCopiedID == clip.id,
-                            showsRemove: model.optionHeld,
-                            onCopy: { clipboard.copy(clip) },
-                            onRemove: { clipboard.remove(clip) }
-                        )
+            // A short history needs no scroller (and measuring a long one to
+            // find out would lay out every row).
+            Group {
+                if clips.count <= NotchStyle.Clipboard.rowsWithoutScrolling {
+                    VStack(spacing: 0) { rows }
+                } else {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        LazyVStack(spacing: 0) { rows }
                     }
                 }
             }
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+    }
+
+    private var rows: some View {
+        ForEach(clips) { clip in
+            ClipRow(
+                clip: clip,
+                thumbnail: thumbnail(clip),
+                justCopied: recentlyCopiedID == clip.id,
+                showsRemove: showsRemove,
+                onCopy: { onCopy(clip) },
+                onRemove: { onRemove(clip) }
+            )
         }
     }
 }
@@ -48,6 +74,8 @@ private struct ClipRow: View {
     let showsRemove: Bool
     let onCopy: () -> Void
     let onRemove: () -> Void
+
+    @State private var isHovered = false
 
     var body: some View {
         HStack(spacing: NotchStyle.Space.m) {
@@ -63,14 +91,14 @@ private struct ClipRow: View {
                     .truncationMode(.tail)
                 Text(subtitle)
                     .font(NotchStyle.Font.caption)
-                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+                    .foregroundStyle(NotchStyle.Palette.tertiaryText)
                     .lineLimit(1)
             }
             Spacer(minLength: NotchStyle.Space.xs)
 
             if justCopied {
-                Text("Copied")
-                    .font(NotchStyle.Font.caption)
+                Label("Copied", systemImage: "checkmark")
+                    .font(NotchStyle.Font.chip)
                     .foregroundStyle(NotchStyle.Palette.primaryText)
                     .transition(.opacity)
             } else if showsRemove {
@@ -83,13 +111,14 @@ private struct ClipRow: View {
                 .accessibilityLabel("Delete")
             }
         }
-        .padding(.horizontal, NotchStyle.Space.m)
-        .padding(.vertical, NotchStyle.Space.xs)
+        .padding(.horizontal, NotchStyle.Space.s)
+        .padding(.vertical, NotchStyle.Space.xs + 1)
         .background(
             RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                .fill(NotchStyle.Palette.rowBackground)
+                .fill(isHovered ? NotchStyle.Palette.rowBackground : Color.clear)
         )
         .contentShape(Rectangle())
+        .onHover { isHovered = $0 }
         .onTapGesture(perform: onCopy)
         .contextMenu {
             Button("Copy", action: onCopy)

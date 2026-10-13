@@ -8,8 +8,6 @@ struct StocksPanel: View {
     @ObservedObject var settings: AppSettings
     let onOpenSettings: () -> Void
 
-    private let columns = [GridItem(.adaptive(minimum: NotchStyle.Stocks.cardWidth), spacing: NotchStyle.Space.s)]
-
     var body: some View {
         Group {
             if !stocks.hasKey {
@@ -29,19 +27,11 @@ struct StocksPanel: View {
                     action: onOpenSettings
                 )
             } else {
-                VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
-                    LazyVGrid(columns: columns, alignment: .leading, spacing: NotchStyle.Space.s) {
-                        ForEach(settings.stockSymbols.prefix(StocksService.maxSymbols), id: \.self) { symbol in
-                            QuoteCard(symbol: symbol, quote: stocks.quotes[symbol])
-                        }
-                    }
-                    if let problem = stocks.problem {
-                        Text(problem)
-                            .font(NotchStyle.Font.caption)
-                            .foregroundStyle(NotchStyle.Palette.overdue)
-                    }
-                    Spacer(minLength: 0)
-                }
+                StocksContent(
+                    symbols: Array(settings.stockSymbols.prefix(StocksService.maxSymbols)),
+                    quotes: stocks.quotes,
+                    problem: stocks.problem
+                )
             }
         }
         .onAppear { stocks.beginViewing() }
@@ -49,34 +39,86 @@ struct StocksPanel: View {
     }
 }
 
-private struct QuoteCard: View {
+/// One row per ticker: symbol, price, and the day's change as a coloured
+/// badge. From plain values so it can also be drawn with sample data.
+struct StocksContent: View {
+    let symbols: [String]
+    let quotes: [String: StockQuote]
+    let problem: String?
+
+    @Environment(\.isSnapshot) private var isSnapshot
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NotchStyle.Space.s) {
+            if symbols.count <= NotchStyle.Stocks.rowsWithoutScrolling || isSnapshot {
+                VStack(spacing: 0) { rows }
+                    .frame(maxHeight: .infinity, alignment: .top)
+            } else {
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) { rows }
+                }
+            }
+            if let problem {
+                Text(problem)
+                    .font(NotchStyle.Font.caption)
+                    .foregroundStyle(NotchStyle.Palette.overdue)
+            }
+        }
+    }
+
+    private var rows: some View {
+        ForEach(symbols, id: \.self) { symbol in
+            QuoteRow(symbol: symbol, quote: quotes[symbol])
+        }
+    }
+}
+
+private struct QuoteRow: View {
     let symbol: String
     let quote: StockQuote?
 
+    @State private var isHovered = false
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        HStack(spacing: NotchStyle.Space.m) {
             Text(symbol)
-                .font(NotchStyle.Font.caption)
-                .foregroundStyle(NotchStyle.Palette.secondaryText)
-                .lineLimit(1)
-            Text(quote.map { ConversionFormat.string($0.price) } ?? "–")
-                .font(NotchStyle.Font.statValue)
+                .font(NotchStyle.Font.title)
                 .foregroundStyle(NotchStyle.Palette.primaryText)
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            if let quote {
-                Text(String(format: "%@%.2f%%", quote.isUp ? "+" : "", quote.changePercent))
-                    .font(NotchStyle.Font.caption)
-                    .foregroundStyle(quote.isUp ? NotchStyle.Palette.gain : NotchStyle.Palette.overdue)
-            }
+            Spacer(minLength: NotchStyle.Space.s)
+            Text(quote.map { ConversionFormat.string($0.price) } ?? "–")
+                .font(NotchStyle.Font.title)
+                .monospacedDigit()
+                .foregroundStyle(NotchStyle.Palette.primaryText)
+                .lineLimit(1)
+            Text(changeText)
+                .font(NotchStyle.Font.chip.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(quote == nil ? NotchStyle.Palette.secondaryText : NotchStyle.Palette.background)
+                .frame(width: NotchStyle.Stocks.badgeWidth, height: NotchStyle.Chip.height)
+                .background(
+                    RoundedRectangle(cornerRadius: NotchStyle.Tab.radius, style: .continuous)
+                        .fill(badgeFill)
+                )
         }
-        .padding(NotchStyle.Space.m)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, NotchStyle.Space.s)
+        .padding(.vertical, NotchStyle.Space.xs + 1)
         .background(
             RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                .fill(NotchStyle.Palette.rowBackground)
+                .fill(isHovered ? NotchStyle.Palette.rowBackground : Color.clear)
         )
+        .onHover { isHovered = $0 }
         .accessibilityElement(children: .combine)
+    }
+
+    private var changeText: String {
+        guard let quote else { return "–" }
+        return String(format: "%@%.2f%%", quote.isUp ? "+" : "", quote.changePercent)
+    }
+
+    private var badgeFill: Color {
+        guard let quote else { return NotchStyle.Palette.rowBackground }
+        return quote.isUp ? NotchStyle.Palette.gain : NotchStyle.Palette.overdue
     }
 }
 
@@ -98,38 +140,12 @@ struct RevenuePanel: View {
                     action: onOpenSettings
                 )
             } else {
-                HStack(alignment: .top, spacing: NotchStyle.Space.l) {
-                    VStack(alignment: .leading, spacing: NotchStyle.Space.xxs) {
-                        Text("TODAY")
-                            .font(NotchStyle.Font.caption)
-                            .foregroundStyle(NotchStyle.Palette.secondaryText)
-                        let combined = revenue.combined
-                        if combined.minorUnits.isEmpty {
-                            Text(revenue.states.values.contains(.loading) ? "…" : "No sales yet")
-                                .font(NotchStyle.Font.statValue)
-                                .foregroundStyle(NotchStyle.Palette.primaryText)
-                        } else {
-                            ForEach(combined.currencies, id: \.self) { code in
-                                Text(CurrencyMath.format(minor: combined.minorUnits[code] ?? 0, currency: code))
-                                    .font(NotchStyle.Font.display)
-                                    .foregroundStyle(NotchStyle.Palette.primaryText)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.5)
-                            }
-                        }
-                        Text(combined.orderCount == 1 ? "1 sale" : "\(combined.orderCount) sales")
-                            .font(NotchStyle.Font.caption)
-                            .foregroundStyle(NotchStyle.Palette.secondaryText)
-                    }
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: NotchStyle.Space.xxs) {
-                            ForEach(settings.revenueSources) { source in
-                                SourceRow(source: source, state: revenue.states[source.id])
-                            }
-                        }
-                    }
-                    IconButton(symbol: "arrow.clockwise", label: "Refresh") { revenue.refreshAll() }
-                }
+                RevenueContent(
+                    sources: settings.revenueSources,
+                    states: revenue.states,
+                    combined: revenue.combined,
+                    onRefresh: { revenue.refreshAll() }
+                )
             }
         }
         .onAppear { revenue.beginViewing() }
@@ -137,12 +153,66 @@ struct RevenuePanel: View {
     }
 }
 
+/// Today's total, large, on the left; each store on the right. From plain
+/// values so it can also be drawn with sample data.
+struct RevenueContent: View {
+    let sources: [RevenueSource]
+    let states: [UUID: RevenueService.SourceState]
+    let combined: MoneyTotals
+    let onRefresh: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: NotchStyle.Space.xl) {
+            VStack(alignment: .leading, spacing: NotchStyle.Space.xxs) {
+                Text("Today")
+                    .font(NotchStyle.Font.title)
+                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+                if combined.minorUnits.isEmpty {
+                    Text(states.values.contains(.loading) ? "…" : "No sales yet")
+                        .font(NotchStyle.Font.display)
+                        .foregroundStyle(NotchStyle.Palette.primaryText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                } else {
+                    ForEach(combined.currencies, id: \.self) { code in
+                        Text(CurrencyMath.format(minor: combined.minorUnits[code] ?? 0, currency: code))
+                            .font(combined.currencies.count == 1 ? NotchStyle.Font.hero : NotchStyle.Font.display)
+                            .tracking(-1)
+                            .foregroundStyle(NotchStyle.Palette.primaryText)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                    }
+                }
+                Text(combined.orderCount == 1 ? "1 sale" : "\(combined.orderCount) sales")
+                    .font(NotchStyle.Font.subtitle)
+                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+                Spacer(minLength: 0)
+                Button(action: onRefresh) {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(ChipButtonStyle())
+            }
+            .frame(width: NotchStyle.Revenue.totalWidth, alignment: .leading)
+            .frame(maxHeight: .infinity, alignment: .top)
+
+            VStack(spacing: 0) {
+                ForEach(sources) { source in
+                    SourceRow(source: source, state: states[source.id])
+                }
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+    }
+}
+
 private struct SourceRow: View {
     let source: RevenueSource
     let state: RevenueService.SourceState?
 
+    @State private var isHovered = false
+
     var body: some View {
-        HStack {
+        HStack(spacing: NotchStyle.Space.m) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(source.name)
                     .font(NotchStyle.Font.rowTitle)
@@ -150,26 +220,29 @@ private struct SourceRow: View {
                     .lineLimit(1)
                 Text(source.provider.title)
                     .font(NotchStyle.Font.caption)
-                    .foregroundStyle(NotchStyle.Palette.secondaryText)
+                    .foregroundStyle(NotchStyle.Palette.tertiaryText)
             }
             Spacer()
             Text(valueText)
-                .font(NotchStyle.Font.caption)
+                .font(NotchStyle.Font.body.weight(.semibold))
+                .monospacedDigit()
                 .foregroundStyle(isFailure ? NotchStyle.Palette.overdue : NotchStyle.Palette.primaryText)
                 .lineLimit(1)
         }
-        .padding(.horizontal, NotchStyle.Space.m)
-        .padding(.vertical, NotchStyle.Space.xs)
+        .padding(.horizontal, NotchStyle.Space.s)
+        .padding(.vertical, NotchStyle.Space.xs + 1)
         .background(
             RoundedRectangle(cornerRadius: NotchStyle.Clipboard.rowRadius, style: .continuous)
-                .fill(NotchStyle.Palette.rowBackground)
+                .fill(isHovered ? NotchStyle.Palette.rowBackground : Color.clear)
         )
+        .onHover { isHovered = $0 }
+        .accessibilityElement(children: .combine)
     }
 
     private var valueText: String {
         switch state {
         case .loaded(let totals):
-            if totals.minorUnits.isEmpty { return "0 sales" }
+            if totals.minorUnits.isEmpty { return "No sales" }
             return totals.currencies
                 .map { CurrencyMath.format(minor: totals.minorUnits[$0] ?? 0, currency: $0) }
                 .joined(separator: " + ")
