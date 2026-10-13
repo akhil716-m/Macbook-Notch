@@ -85,7 +85,23 @@ You'll also need an Apple Developer account to sign and notarise the app.
 
 ## Run it
 
-### Option A: download a build from CI (no Xcode needed)
+### Quickest: one command installs the newest build
+
+Once, in Terminal: `brew install gh && gh auth login` (install
+[Homebrew](https://brew.sh) first if you don't have it).
+
+Then, any time you want the latest build:
+
+```bash
+gh api "repos/akhil716-m/Macbook-Notch/contents/scripts/install-latest.sh?ref=claude/jolly-turing-rqk3tt" -H "Accept: application/vnd.github.raw" | bash
+```
+
+It downloads the newest passing CI build, installs it to `/Applications`,
+clears the "downloaded" flag and restarts the app. If you've cloned the repo,
+`./scripts/install-latest.sh` does the same. With Xcode installed,
+`./scripts/build-and-run.sh` builds and runs your local copy instead.
+
+### Option A: download a build from CI by hand (no Xcode needed)
 
 1. Open the repo's **Actions** tab, pick the latest green **CI** run, and
    download the `MacbookNotch-…` artifact.
