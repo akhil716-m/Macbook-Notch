@@ -142,7 +142,7 @@ enum SystemSettingsLink {
 }
 
 extension Color {
-    init(_ rgb: RGBColor?, fallback: Color) {
+    init(_ rgb: ColorComponents?, fallback: Color) {
         if let rgb {
             self.init(.sRGB, red: rgb.red, green: rgb.green, blue: rgb.blue, opacity: 1)
         } else {

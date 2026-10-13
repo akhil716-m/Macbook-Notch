@@ -19,7 +19,7 @@ extension AccessState {
     }
 }
 
-extension RGBColor {
+extension ColorComponents {
     init?(_ color: NSColor?) {
         guard let rgb = color?.usingColorSpace(.sRGB) else { return nil }
         self.init(red: Double(rgb.redComponent), green: Double(rgb.greenComponent), blue: Double(rgb.blueComponent))
@@ -75,7 +75,7 @@ final class CalendarService: ObservableObject {
                 isAllDay: event.isAllDay,
                 location: event.location,
                 calendarTitle: event.calendar?.title ?? "",
-                color: RGBColor(event.calendar?.color),
+                color: ColorComponents(event.calendar?.color),
                 meetingURL: MeetingLink.find(in: [event.url?.absoluteString, event.location, event.notes])
             )
         }
@@ -147,7 +147,7 @@ final class RemindersService: ObservableObject {
                     dueDate: components.flatMap { calendar.date(from: $0) },
                     dueHasTime: components?.hour != nil,
                     listTitle: reminder.calendar?.title ?? "",
-                    color: RGBColor(reminder.calendar?.color)
+                    color: ColorComponents(reminder.calendar?.color)
                 )
             }
             DispatchQueue.main.async {

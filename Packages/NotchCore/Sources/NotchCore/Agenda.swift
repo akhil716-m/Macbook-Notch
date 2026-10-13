@@ -11,7 +11,7 @@ public struct AgendaEvent: Identifiable, Hashable, Sendable {
     public var location: String?
     public var calendarTitle: String
     /// sRGB components 0...1, or nil for the default colour.
-    public var color: RGBColor?
+    public var color: ColorComponents?
     /// A video-call link found in the event, if any.
     public var meetingURL: URL?
 
@@ -23,7 +23,7 @@ public struct AgendaEvent: Identifiable, Hashable, Sendable {
         isAllDay: Bool,
         location: String? = nil,
         calendarTitle: String = "",
-        color: RGBColor? = nil,
+        color: ColorComponents? = nil,
         meetingURL: URL? = nil
     ) {
         self.id = id
@@ -42,7 +42,7 @@ public struct AgendaEvent: Identifiable, Hashable, Sendable {
     }
 }
 
-public struct RGBColor: Hashable, Codable, Sendable {
+public struct ColorComponents: Hashable, Codable, Sendable {
     public var red: Double
     public var green: Double
     public var blue: Double
@@ -135,7 +135,7 @@ public struct ReminderItem: Identifiable, Hashable, Sendable {
     /// False for "due on a day" without a time.
     public var dueHasTime: Bool
     public var listTitle: String
-    public var color: RGBColor?
+    public var color: ColorComponents?
 
     public init(
         id: String,
@@ -143,7 +143,7 @@ public struct ReminderItem: Identifiable, Hashable, Sendable {
         dueDate: Date? = nil,
         dueHasTime: Bool = false,
         listTitle: String = "",
-        color: RGBColor? = nil
+        color: ColorComponents? = nil
     ) {
         self.id = id
         self.title = title
