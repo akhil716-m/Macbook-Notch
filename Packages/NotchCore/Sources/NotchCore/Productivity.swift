@@ -116,3 +116,19 @@ public enum KeepAwakeDuration: String, CaseIterable, Codable, Sendable, Identifi
         }
     }
 }
+
+/// The line at the top of Home: "Good morning, Akhil".
+public enum Greeting {
+    /// Morning until noon, afternoon until 5 pm, evening after. The name is
+    /// the first word of the account's full name, left out if there is none.
+    public static func text(hour: Int, fullName: String) -> String {
+        let part: String
+        switch hour {
+        case 0..<12: part = "Good morning"
+        case 12..<17: part = "Good afternoon"
+        default: part = "Good evening"
+        }
+        let first = fullName.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? ""
+        return first.isEmpty ? part : "\(part), \(first)"
+    }
+}

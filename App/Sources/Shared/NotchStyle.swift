@@ -86,6 +86,7 @@ enum NotchStyle {
         static let statValue = SwiftUI.Font.system(size: 15, weight: .semibold).monospacedDigit()
         /// Big readouts: stopwatch, converter results.
         static let display = SwiftUI.Font.system(size: 36, weight: .regular).monospacedDigit()
+        static let stopwatch = SwiftUI.Font.system(size: 44, weight: .light).monospacedDigit()
         /// The one very large number on a screen (counts in list tools).
         static let hero = SwiftUI.Font.system(size: 52, weight: .light).monospacedDigit()
         static let compactIcon = SwiftUI.Font.system(size: 12, weight: .semibold)
@@ -172,6 +173,25 @@ enum NotchStyle {
         static let bubbleRadius: CGFloat = 12
     }
 
+    enum Home {
+        static let sideColumn: CGFloat = 230
+        static let artwork: CGFloat = 104
+        static let visibleEvents = 3
+        static let visibleReminders = 3
+        static let eventBar: CGFloat = 26
+    }
+
+    enum Stopwatch {
+        static let visibleLaps = 5
+        static let lapColumn: CGFloat = 180
+    }
+
+    enum Pomodoro {
+        static let ring: CGFloat = 132
+        static let ringWidth: CGFloat = 6
+        static let dot: CGFloat = 8
+    }
+
     enum Teleprompter {
         static let fade: CGFloat = 28
         static let playSize: CGFloat = 40
@@ -209,7 +229,7 @@ enum NotchStyle {
 
     /// The large numbers in System.
     enum Readout {
-        static let graphicHeight: CGFloat = 30
+        static let graphicHeight: CGFloat = 26
     }
 
     enum KeepAwake {

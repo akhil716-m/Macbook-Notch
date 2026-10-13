@@ -1,15 +1,19 @@
 import Darwin
 import Foundation
+import IOKit.ps
 import NotchCore
 
-/// CPU, memory and network readings, sampled once a second, and only while
-/// the System tool is on screen.
+/// CPU, memory, network, disk and battery readings, sampled once a second
+/// (disk every ten), and only while the System tool is on screen.
 @MainActor
 final class SystemStatsService: ObservableObject {
     @Published private(set) var cpu: Double?
     @Published private(set) var cpuHistory: [Double] = []
     @Published private(set) var memory: MemoryUsage?
     @Published private(set) var network: NetworkRate = .zero
+    @Published private(set) var disk: DiskUsage?
+    /// Nil on Macs without a battery.
+    @Published private(set) var battery: BatteryStatus?
 
     static let historyLength = 40
     private static let interval: TimeInterval = 1
@@ -19,6 +23,7 @@ final class SystemStatsService: ObservableObject {
     private var previousTicks: [CPUTicks]?
     private var previousNetwork: [String: InterfaceCounters]?
     private var previousTime: TimeInterval?
+    private var samplesSinceDisk = 0
 
     func beginViewing() {
         viewers += 1
@@ -55,6 +60,12 @@ final class SystemStatsService: ObservableObject {
         }
 
         memory = SystemSampler.memory()
+        battery = SystemSampler.battery()
+        if disk == nil || samplesSinceDisk >= 10 {
+            disk = SystemSampler.disk()
+            samplesSinceDisk = 0
+        }
+        samplesSinceDisk += 1
 
         let counters = SystemSampler.networkCounters()
         if let previousNetwork, let previousTime {
@@ -67,6 +78,30 @@ final class SystemStatsService: ObservableObject {
 
 /// Thin wrappers over the kernel calls Activity Monitor uses.
 enum SystemSampler {
+    /// Space on the startup disk. "Available" counts purgeable space macOS
+    /// would free on demand, as Finder does.
+    static func disk() -> DiskUsage? {
+        let keys: Set<URLResourceKey> = [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey]
+        guard let values = try? URL(fileURLWithPath: "/").resourceValues(forKeys: keys),
+              let available = values.volumeAvailableCapacityForImportantUsage,
+              let total = values.volumeTotalCapacity
+        else { return nil }
+        return DiskUsage(available: available, total: Int64(total))
+    }
+
+    static func battery() -> BatteryStatus? {
+        guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
+              let list = IOPSCopyPowerSourcesList(info)?.takeRetainedValue()
+        else { return nil }
+        for source in (list as NSArray) as [AnyObject] {
+            guard let description = IOPSGetPowerSourceDescription(info, source)?.takeUnretainedValue() as? [String: Any],
+                  let battery = BatteryStatus(powerSource: description)
+            else { continue }
+            return battery
+        }
+        return nil
+    }
+
     static func cpuTicks() -> [CPUTicks]? {
         var processorCount: natural_t = 0
         var info: processor_info_array_t?

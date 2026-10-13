@@ -135,7 +135,7 @@ final class AppSettings: ObservableObject {
             storedOrder: defaults.stringArray(forKey: Key.toolOrder) ?? [],
             storedDisabled: defaults.stringArray(forKey: Key.toolsDisabled) ?? []
         )
-        selectedTool = defaults.string(forKey: Key.selectedTool).flatMap(NotchTool.init(rawValue:)) ?? .nowPlaying
+        selectedTool = defaults.string(forKey: Key.selectedTool).flatMap(NotchTool.init(rawValue:)) ?? .home
         shelfRetention = defaults.string(forKey: Key.shelfRetention).flatMap(ShelfRetention.init(rawValue:)) ?? .default
         let storedLimit = defaults.integer(forKey: Key.clipboardLimit)
         clipboardLimit = ClipboardHistory.limitOptions.contains(storedLimit) ? storedLimit : ClipboardHistory.defaultLimit

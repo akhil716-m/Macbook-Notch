@@ -133,3 +133,72 @@ public enum ByteFormat {
         string(bytesPerSecond) + "/s"
     }
 }
+
+/// Free and total space on the startup disk.
+public struct DiskUsage: Equatable, Sendable {
+    public var available: Int64
+    public var total: Int64
+
+    public init(available: Int64, total: Int64) {
+        self.available = max(0, available)
+        self.total = max(0, total)
+    }
+
+    /// How full the disk is, 0...1.
+    public var usedFraction: Double {
+        total > 0 ? min(1, max(0, 1 - Double(available) / Double(total))) : 0
+    }
+}
+
+/// The internal battery, read from IOKit's power source description.
+public struct BatteryStatus: Equatable, Sendable {
+    /// 0...1
+    public var level: Double
+    public var isCharging: Bool
+    public var isPluggedIn: Bool
+    /// Minutes until empty (on battery) or full (charging), when macOS knows.
+    public var minutesLeft: Int?
+
+    public init(level: Double, isCharging: Bool, isPluggedIn: Bool, minutesLeft: Int?) {
+        self.level = min(1, max(0, level))
+        self.isCharging = isCharging
+        self.isPluggedIn = isPluggedIn
+        self.minutesLeft = minutesLeft
+    }
+
+    /// Reads one entry of `IOPSCopyPowerSourcesInfo`. Nil for anything that
+    /// isn't an internal battery (UPS, accessories) or has no capacity.
+    public init?(powerSource info: [String: Any]) {
+        guard (info["Type"] as? String) == "InternalBattery",
+              let current = info["Current Capacity"] as? Int,
+              let max = info["Max Capacity"] as? Int, max > 0
+        else { return nil }
+        let charging = (info["Is Charging"] as? Bool) ?? false
+        let pluggedIn = (info["Power Source State"] as? String) == "AC Power"
+        let minutes = charging ? info["Time to Full Charge"] as? Int : info["Time to Empty"] as? Int
+        self.init(
+            level: Double(current) / Double(max),
+            isCharging: charging,
+            isPluggedIn: pluggedIn,
+            minutesLeft: minutes.flatMap { $0 > 0 ? $0 : nil }
+        )
+    }
+
+    /// "Charging · 1 h 5 min to full", "On battery · 3 h 20 min left",
+    /// "Plugged in", "On battery".
+    public var summary: String {
+        let time = minutesLeft.map(Self.duration)
+        if isCharging {
+            return time.map { "Charging · \($0) to full" } ?? "Charging"
+        }
+        if isPluggedIn { return level >= 0.995 ? "Fully charged" : "Plugged in" }
+        return time.map { "On battery · \($0) left" } ?? "On battery"
+    }
+
+    static func duration(_ minutes: Int) -> String {
+        let hours = minutes / 60
+        let rest = minutes % 60
+        if hours == 0 { return "\(rest) min" }
+        return rest == 0 ? "\(hours) h" : "\(hours) h \(rest) min"
+    }
+}

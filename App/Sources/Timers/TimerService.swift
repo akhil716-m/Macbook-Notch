@@ -11,8 +11,13 @@ final class TimerService: ObservableObject {
     @Published private(set) var runningTimerID: UUID?
     /// A timer that just finished, shown in the closed notch until seen.
     @Published private(set) var finishedTimerID: UUID?
+    @Published private(set) var stopwatch = Stopwatch()
+    @Published private(set) var pomodoro = Pomodoro()
 
     private let file: LocalFile<[CountdownTimer]>
+    private let stopwatchFile: LocalFile<Stopwatch>
+    private let pomodoroFile: LocalFile<Pomodoro>
+    private var pomodoroWake: Timer?
     private var wakeTimer: Timer?
     private var dismissTask: Task<Void, Never>?
     /// Finished timers we've already announced, so a relaunch doesn't ring again.
@@ -24,13 +29,80 @@ final class TimerService: ObservableObject {
 
     init(fileURL: URL) {
         file = LocalFile(url: fileURL)
+        let folder = fileURL.deletingLastPathComponent()
+        stopwatchFile = LocalFile(url: folder.appendingPathComponent("stopwatch.json"))
+        pomodoroFile = LocalFile(url: folder.appendingPathComponent("pomodoro.json"))
     }
 
     func start() {
         timers = file.load() ?? []
+        stopwatch = stopwatchFile.load() ?? Stopwatch()
+        pomodoro = pomodoroFile.load() ?? Pomodoro()
         let now = Date()
         announced = Set(timers.filter { $0.state(at: now) == .finished }.map(\.id))
         reschedule()
+        // A phase that ended while the app was closed is recorded quietly.
+        pomodoro.advanceIfDue(at: now, calendar: .current)
+        pomodoroChanged()
+    }
+
+    // MARK: Stopwatch
+
+    func startStopwatch() { changeStopwatch { $0.start(at: Date()) } }
+    func pauseStopwatch() { changeStopwatch { $0.pause(at: Date()) } }
+    func lapStopwatch() { changeStopwatch { $0.lap(at: Date()) } }
+    func resetStopwatch() { changeStopwatch { $0.reset() } }
+
+    private func changeStopwatch(_ change: (inout Stopwatch) -> Void) {
+        change(&stopwatch)
+        stopwatchFile.save(stopwatch)
+    }
+
+    // MARK: Pomodoro
+
+    func startPomodoro() {
+        changePomodoro { $0.start(at: Date()) }
+        requestNotificationPermissionOnce()
+    }
+
+    func pausePomodoro() { changePomodoro { $0.pause(at: Date()) } }
+    func skipPomodoro() { changePomodoro { $0.skip() } }
+    func resetPomodoro() { changePomodoro { $0.reset() } }
+
+    func setPomodoroLengths(_ lengths: Pomodoro.Lengths) {
+        changePomodoro { $0.lengths = lengths }
+    }
+
+    private func changePomodoro(_ change: (inout Pomodoro) -> Void) {
+        change(&pomodoro)
+        pomodoroChanged()
+    }
+
+    private func pomodoroChanged() {
+        pomodoroFile.save(pomodoro)
+        pomodoroWake?.invalidate()
+        pomodoroWake = nil
+        guard let endsAt = pomodoro.endsAt else { return }
+        let wake = Timer(fire: endsAt, interval: 0, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated { self?.pomodoroPhaseEnded() }
+        }
+        wake.tolerance = 0.05
+        RunLoop.main.add(wake, forMode: .common)
+        pomodoroWake = wake
+    }
+
+    private func pomodoroPhaseEnded() {
+        guard let ended = pomodoro.advanceIfDue(at: Date(), calendar: .current) else { return }
+        pomodoroChanged()
+        NSSound(named: "Glass")?.play()
+        let content = UNMutableNotificationContent()
+        content.title = ended == .focus ? "Focus session done" : "Break's over"
+        content.body = ended == .focus
+            ? "Time for a \(pomodoro.phase == .longBreak ? "long" : "short") break."
+            : "Ready for the next focus session?"
+        content.sound = nil
+        let request = UNNotificationRequest(identifier: "pomodoro-\(UUID().uuidString)", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
     }
 
     // MARK: Actions

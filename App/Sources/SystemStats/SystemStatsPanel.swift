@@ -7,7 +7,14 @@ struct SystemStatsPanel: View {
     @ObservedObject var stats: SystemStatsService
 
     var body: some View {
-        SystemReadouts(cpu: stats.cpu, cpuHistory: stats.cpuHistory, memory: stats.memory, network: stats.network)
+        SystemReadouts(
+            cpu: stats.cpu,
+            cpuHistory: stats.cpuHistory,
+            memory: stats.memory,
+            network: stats.network,
+            disk: stats.disk,
+            battery: stats.battery
+        )
             .onAppear { stats.beginViewing() }
             .onDisappear { stats.endViewing() }
     }
@@ -21,8 +28,54 @@ struct SystemReadouts: View {
     let cpuHistory: [Double]
     let memory: MemoryUsage?
     let network: NetworkRate
+    var disk: DiskUsage?
+    var battery: BatteryStatus?
 
     var body: some View {
+        VStack(spacing: NotchStyle.Space.l) {
+            readouts
+            if disk != nil || battery != nil {
+                HStack(spacing: NotchStyle.Space.xl) {
+                    if let disk {
+                        MiniMeter(
+                            symbol: "internaldrive",
+                            title: "Disk",
+                            fraction: disk.usedFraction,
+                            value: ByteFormat.string(Double(disk.available)) + " free",
+                            tint: disk.usedFraction > 0.9 ? NotchStyle.Palette.overdue : NotchStyle.Palette.fill
+                        )
+                    }
+                    if let battery {
+                        MiniMeter(
+                            symbol: Self.batterySymbol(battery),
+                            title: "Battery",
+                            fraction: battery.level,
+                            value: "\(Int((battery.level * 100).rounded()))%",
+                            tint: battery.level < 0.2 && !battery.isPluggedIn ? NotchStyle.Palette.overdue : NotchStyle.Palette.gain,
+                            detail: battery.summary
+                        )
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, NotchStyle.Space.l)
+        .padding(.vertical, NotchStyle.Space.l)
+        .background(NotchCardBackground(radius: NotchStyle.Card.radius + 4))
+        .frame(maxHeight: .infinity)
+    }
+
+    private static func batterySymbol(_ battery: BatteryStatus) -> String {
+        if battery.isCharging { return "battery.100percent.bolt" }
+        switch battery.level {
+        case ..<0.13: return "battery.0percent"
+        case ..<0.38: return "battery.25percent"
+        case ..<0.63: return "battery.50percent"
+        case ..<0.88: return "battery.75percent"
+        default: return "battery.100percent"
+        }
+    }
+
+    private var readouts: some View {
         HStack(alignment: .top, spacing: NotchStyle.Space.xl) {
             Readout(symbol: "cpu", title: "CPU", value: cpu.map { "\(Int(($0 * 100).rounded()))%" } ?? "–") {
                 Sparkline(values: cpuHistory)
@@ -49,10 +102,38 @@ struct SystemReadouts: View {
                     .frame(height: NotchStyle.Readout.graphicHeight, alignment: .bottomLeading)
             }
         }
-        .padding(.horizontal, NotchStyle.Space.l)
-        .padding(.vertical, NotchStyle.Space.l)
-        .background(NotchCardBackground(radius: NotchStyle.Card.radius + 4))
-        .frame(maxHeight: .infinity)
+    }
+}
+
+/// A label, a thin bar and a value on one line, for the secondary stats.
+private struct MiniMeter: View {
+    let symbol: String
+    let title: String
+    let fraction: Double
+    let value: String
+    var tint: Color = NotchStyle.Palette.fill
+    var detail: String?
+
+    var body: some View {
+        HStack(spacing: NotchStyle.Space.s) {
+            Label(title, systemImage: symbol)
+                .font(NotchStyle.Font.body)
+                .foregroundStyle(NotchStyle.Palette.secondaryText)
+                .lineLimit(1)
+                .fixedSize()
+            MeterBar(fraction: fraction, tint: tint)
+            Text(value)
+                .font(NotchStyle.Font.body.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(NotchStyle.Palette.primaryText)
+                .lineLimit(1)
+                .fixedSize()
+        }
+        .frame(maxWidth: .infinity)
+        .help(detail ?? "")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title)
+        .accessibilityValue([value, detail].compactMap { $0 }.joined(separator: ", "))
     }
 }
 

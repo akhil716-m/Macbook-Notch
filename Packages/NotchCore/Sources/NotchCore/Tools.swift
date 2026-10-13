@@ -3,6 +3,7 @@ import Foundation
 /// Every tool that can live in the open notch. New tools are added here;
 /// stored settings that don't mention them pick them up automatically.
 public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identifiable {
+    case home
     case nowPlaying
     case shelf
     case clipboard
@@ -27,6 +28,7 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
 
     public var title: String {
         switch self {
+        case .home: return "Home"
         case .nowPlaying: return "Now Playing"
         case .shelf: return "Shelf"
         case .clipboard: return "Clipboard"
@@ -52,6 +54,7 @@ public enum NotchTool: String, CaseIterable, Codable, Hashable, Sendable, Identi
     /// SF Symbol name.
     public var symbolName: String {
         switch self {
+        case .home: return "square.grid.2x2.fill"
         case .nowPlaying: return "music.note"
         case .shelf: return "tray.full"
         case .clipboard: return "doc.on.clipboard"
@@ -81,7 +84,8 @@ public struct ToolArrangement: Equatable, Sendable {
     public private(set) var disabled: Set<NotchTool>
 
     /// Builds from stored raw values, dropping unknown and duplicate entries
-    /// and appending tools the stored order doesn't know about yet.
+    /// and adding tools the stored order doesn't know about yet (Home first,
+    /// the rest at the end).
     public init(storedOrder: [String] = [], storedDisabled: [String] = []) {
         var order: [NotchTool] = []
         for raw in storedOrder {
@@ -90,7 +94,12 @@ public struct ToolArrangement: Equatable, Sendable {
             }
         }
         for tool in NotchTool.allCases where !order.contains(tool) {
-            order.append(tool)
+            // Home is the overview, so it joins at the front; others at the end.
+            if tool == .home {
+                order.insert(tool, at: 0)
+            } else {
+                order.append(tool)
+            }
         }
         self.order = order
         var disabled = Set(storedDisabled.compactMap(NotchTool.init(rawValue:)))

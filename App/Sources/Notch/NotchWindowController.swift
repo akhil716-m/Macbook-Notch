@@ -241,22 +241,28 @@ final class NotchWindowController {
     // MARK: Services
 
     private func observeServices() {
-        Publishers.CombineLatest(
+        Publishers.CombineLatest3(
             Publishers.CombineLatest4(
                 services.nowPlaying.$track.map { $0?.status == .playing }.removeDuplicates(),
                 services.timers.$runningTimerID.removeDuplicates(),
                 services.timers.$finishedTimerID.removeDuplicates(),
                 services.keepAwake.$isActive.removeDuplicates()
             ),
-            services.volume.$isShowing.removeDuplicates()
+            services.volume.$isShowing.removeDuplicates(),
+            Publishers.CombineLatest(
+                services.timers.$pomodoro.map { $0.state == .running }.removeDuplicates(),
+                services.timers.$stopwatch.map(\.isRunning).removeDuplicates()
+            )
         )
-        .map { state, volumeChanged in
+        .map { state, volumeChanged, focus in
             LiveActivity.pick(
                 finishedTimer: state.2,
                 runningTimer: state.1,
                 musicPlaying: state.0,
                 keepAwake: state.3,
-                volumeChanged: volumeChanged
+                volumeChanged: volumeChanged,
+                pomodoroRunning: focus.0,
+                stopwatchRunning: focus.1
             )
         }
         .removeDuplicates()

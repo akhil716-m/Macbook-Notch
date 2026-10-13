@@ -52,13 +52,15 @@ struct NotchRootView: View {
         case .compact:
             compactContent(model.liveActivity)
         case .open:
-            let selected = settings.tools.resolvedSelection(settings.selectedTool) ?? .nowPlaying
+            let selected = settings.tools.resolvedSelection(settings.selectedTool) ?? .home
             VStack(spacing: 0) {
                 // Nothing goes level with the notch or the menu bar: the
                 // camera housing and the menu bar can cover it.
                 Color.clear.frame(height: model.layout.contentTop)
                 PanelHeader(
-                    title: selected.title,
+                    title: selected == .home
+                        ? Greeting.text(hour: Calendar.current.component(.hour, from: Date()), fullName: NSFullUserName())
+                        : selected.title,
                     isPinned: model.isPinned,
                     onTogglePin: { model.isPinned.toggle() },
                     onOpenSettings: { services.openSettings() }
@@ -90,6 +92,13 @@ struct NotchRootView: View {
     @ViewBuilder
     private func toolView(_ tool: NotchTool) -> some View {
         switch tool {
+        case .home:
+            HomePanel(
+                nowPlaying: nowPlaying,
+                calendar: services.calendar,
+                reminders: services.reminders,
+                onShow: { settings.selectedTool = $0 }
+            )
         case .nowPlaying:
             NowPlayingPanel(service: nowPlaying)
         case .shelf:
@@ -149,6 +158,10 @@ struct NotchRootView: View {
             CompactTimerActivity(timers: services.timers, timerID: id, finished: true, notchWidth: notchWidth)
         case .keepAwake:
             CompactKeepAwakeActivity(notchWidth: notchWidth)
+        case .pomodoro:
+            CompactPomodoroActivity(timers: services.timers, notchWidth: notchWidth)
+        case .stopwatch:
+            CompactStopwatchActivity(timers: services.timers, notchWidth: notchWidth)
         case .volume:
             CompactVolumeActivity(volume: services.volume, notchWidth: notchWidth)
         }

@@ -10,7 +10,9 @@ final class ToolsTests: XCTestCase {
 
     func testStoredOrderIsCleanedAndNewToolsAppended() {
         let arrangement = ToolArrangement(storedOrder: ["clipboard", "bogus", "clipboard", "nowPlaying"])
-        XCTAssertEqual(Array(arrangement.order.prefix(2)), [.clipboard, .nowPlaying])
+        // Home wasn't stored, so it joins at the front; other new tools go last.
+        XCTAssertEqual(Array(arrangement.order.prefix(3)), [.home, .clipboard, .nowPlaying])
+        XCTAssertEqual(arrangement.order.last, NotchTool.allCases.last)
         XCTAssertEqual(arrangement.order.count, NotchTool.allCases.count)
         XCTAssertEqual(Set(arrangement.order), Set(NotchTool.allCases))
     }
@@ -33,14 +35,14 @@ final class ToolsTests: XCTestCase {
         for tool in NotchTool.allCases.dropFirst() {
             XCTAssertTrue(arrangement.setEnabled(tool, false))
         }
-        XCTAssertFalse(arrangement.setEnabled(.nowPlaying, false))
-        XCTAssertEqual(arrangement.enabled, [.nowPlaying])
+        XCTAssertFalse(arrangement.setEnabled(.home, false))
+        XCTAssertEqual(arrangement.enabled, [.home])
         XCTAssertTrue(arrangement.setEnabled(.shelf, true))
         XCTAssertFalse(arrangement.setEnabled(.shelf, true))
     }
 
     func testMoveMatchesSwiftUISemantics() {
-        var arrangement = ToolArrangement(storedOrder: ["nowPlaying", "shelf", "clipboard"])
+        var arrangement = ToolArrangement(storedOrder: ["nowPlaying", "shelf", "clipboard", "home"])
         let rest = Array(arrangement.order.dropFirst(3))
         arrangement.move(fromOffsets: IndexSet(integer: 0), toOffset: 3)
         XCTAssertEqual(arrangement.order, [.shelf, .clipboard, .nowPlaying] + rest)
@@ -53,7 +55,7 @@ final class ToolsTests: XCTestCase {
     }
 
     func testSelectionFallsBackToFirstEnabledTool() {
-        var arrangement = ToolArrangement(storedOrder: ["nowPlaying", "shelf", "clipboard"])
+        var arrangement = ToolArrangement(storedOrder: ["nowPlaying", "shelf", "clipboard", "home"])
         arrangement.setEnabled(.nowPlaying, false)
         XCTAssertEqual(arrangement.resolvedSelection(.nowPlaying), .shelf)
         XCTAssertEqual(arrangement.resolvedSelection(.clipboard), .clipboard)

@@ -180,3 +180,12 @@ final class SystemStatsTests: XCTestCase {
         XCTAssertEqual(ByteFormat.rate(2_500), "2.5 KB/s")
     }
 }
+
+final class GreetingTests: XCTestCase {
+    func testGreetingByTimeOfDay() {
+        XCTAssertEqual(Greeting.text(hour: 6, fullName: "Akhil Male"), "Good morning, Akhil")
+        XCTAssertEqual(Greeting.text(hour: 12, fullName: "Akhil Male"), "Good afternoon, Akhil")
+        XCTAssertEqual(Greeting.text(hour: 17, fullName: "  Akhil  "), "Good evening, Akhil")
+        XCTAssertEqual(Greeting.text(hour: 23, fullName: ""), "Good evening")
+    }
+}

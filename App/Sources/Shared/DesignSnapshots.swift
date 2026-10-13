@@ -25,6 +25,10 @@ enum DesignSnapshots {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let tools = NotchTool.allCases
         let pages: [(String, AnyView)] = [
+            ("panel-home", AnyView(SamplePanel(title: "Good afternoon, Akhil", selected: .home, tools: tools) { SampleHome(playing: true) })),
+            ("panel-home-quiet", AnyView(SamplePanel(title: "Good evening, Akhil", selected: .home, tools: tools) { SampleHome(playing: false) })),
+            ("panel-stopwatch", AnyView(SamplePanel(title: "Timers", selected: .timers, tools: tools) { SampleStopwatch() })),
+            ("panel-pomodoro", AnyView(SamplePanel(title: "Timers", selected: .timers, tools: tools) { SamplePomodoro() })),
             ("panel-converter", AnyView(SamplePanel(title: "Converter", selected: .converter, tools: tools) { SampleConverter() })),
             ("panel-system", AnyView(SamplePanel(title: "System", selected: .systemStats, tools: tools) { SampleSystem() })),
             ("panel-calendar", AnyView(SamplePanel(title: "Calendar", selected: .calendar, tools: tools) { SampleCalendar() })),
@@ -150,8 +154,68 @@ private struct SampleSystem: View {
             cpu: 0.23,
             cpuHistory: [0.12, 0.18, 0.15, 0.32, 0.41, 0.28, 0.22, 0.35, 0.19, 0.24, 0.3, 0.23],
             memory: MemoryUsage(used: 12_130_000_000, total: 17_179_869_184),
-            network: NetworkRate(receivedPerSecond: 932_000, sentPerSecond: 22_400)
+            network: NetworkRate(receivedPerSecond: 932_000, sentPerSecond: 22_400),
+            disk: DiskUsage(available: 53_530_000_000, total: 494_380_000_000),
+            battery: BatteryStatus(level: 0.54, isCharging: false, isPluggedIn: false, minutesLeft: 200)
         )
+    }
+}
+
+private struct SampleHome: View {
+    let playing: Bool
+
+    var body: some View {
+        let calendar = Calendar.current
+        let now = Date()
+        let today = calendar.startOfDay(for: now)
+        let track = NowPlayingTrack(player: .spotify, status: .playing, title: "Telephone Line", artist: "Electric Light Orchestra",
+                                    album: "A New World Record", duration: 280, position: 95, positionUpdatedAt: now)
+        let events = [
+            AgendaEvent(id: "1", title: "2.0 launch", start: today, end: today.addingTimeInterval(86_400), isAllDay: true,
+                        color: ColorComponents(red: 0.75, green: 0.35, blue: 0.95)),
+            AgendaEvent(id: "2", title: "Design review", start: now.addingTimeInterval(1_800), end: now.addingTimeInterval(5_400),
+                        isAllDay: false, color: ColorComponents(red: 0.35, green: 0.6, blue: 1)),
+        ]
+        let reminders = [
+            ReminderItem(id: "1", title: "Update landing page"),
+            ReminderItem(id: "2", title: "Renew passport", dueDate: calendar.date(byAdding: .day, value: -1, to: today)),
+        ]
+        HomeContent(
+            track: playing ? track : nil, artwork: nil, now: now,
+            events: playing ? events : [], calendarAllowed: true,
+            reminders: playing ? reminders : [], remindersAllowed: true,
+            onPlayPause: {}, onNext: {}, onPrevious: {}, onOpenEvent: { _ in }, onCompleteReminder: { _ in }, onShow: { _ in }
+        )
+    }
+}
+
+private struct SampleStopwatch: View {
+    var body: some View {
+        let now = Date()
+        var watch = Stopwatch()
+        watch.start(at: now.addingTimeInterval(-125.37))
+        watch.lap(at: now.addingTimeInterval(-95))
+        watch.lap(at: now.addingTimeInterval(-52))
+        watch.lap(at: now.addingTimeInterval(-11))
+        return VStack(spacing: NotchStyle.Space.m) {
+            SegmentedPicker(options: TimerMode.allCases, selection: .constant(.stopwatch), title: \.title)
+            StopwatchContent(stopwatch: watch, now: now, onStart: {}, onPause: {}, onLap: {}, onReset: {})
+        }
+    }
+}
+
+private struct SamplePomodoro: View {
+    var body: some View {
+        let now = Date()
+        var pomodoro = Pomodoro()
+        pomodoro.start(at: now.addingTimeInterval(-2_400))
+        pomodoro.advanceIfDue(at: now.addingTimeInterval(-900), calendar: .current)
+        pomodoro.skip()
+        pomodoro.start(at: now.addingTimeInterval(-600))
+        return VStack(spacing: NotchStyle.Space.m) {
+            SegmentedPicker(options: TimerMode.allCases, selection: .constant(.pomodoro), title: \.title)
+            PomodoroContent(pomodoro: pomodoro, now: now, onStart: {}, onPause: {}, onSkip: {}, onReset: {}, onLengths: { _ in })
+        }
     }
 }
 
