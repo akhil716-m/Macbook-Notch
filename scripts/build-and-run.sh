@@ -13,9 +13,13 @@ xcodebuild \
     -configuration Debug \
     -derivedDataPath build \
     -quiet \
+    ENABLE_HARDENED_RUNTIME=NO \
     build
 
 pkill -x MacbookNotch 2>/dev/null || true
-sleep 1
+for _ in $(seq 20); do
+    pgrep -x MacbookNotch >/dev/null || break
+    sleep 0.5
+done
 open build/Build/Products/Debug/MacbookNotch.app
 echo "Running. Hover over the notch."

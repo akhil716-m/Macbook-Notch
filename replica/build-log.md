@@ -120,10 +120,16 @@ MacBook on macOS 27.0.1, Apple silicon.
   Developer ID signature and notarisation.
 - The app launches and runs. **Hover over the notch opens the panel: S01/S03
   confirmed.**
-- A suspected crash (hardened runtime + ad-hoc signed Sparkle) turned out not
-  to be real: a hardened ad-hoc copy launched fine on CI. That change was
-  reverted. CI now verifies the signature and launches the app for 10 seconds
-  on every build.
+- **The hardened runtime + ad-hoc signing crash is real.** I reverted the
+  fix after a CI diagnostic launched a hardened ad-hoc copy, but that test
+  was wrong twice over: `codesign --deep` re-signed Sparkle ad hoc too (so
+  the teams matched), and GitHub's runners have SIP off, so library
+  validation isn't enforced there. The user's Mac crash report showed dyld
+  refusing Sparkle.framework ("different Team IDs"). Test builds (CI and
+  `build-and-run.sh`) now turn the hardened runtime off; `project.yml` keeps
+  it on for Developer ID builds. CI checks that embedded frameworks share the
+  app's team whenever the runtime is on, since its launch check can't catch
+  this. `scripts/diagnose.sh` collects crash reports from a tester's Mac.
 - **Tool tabs were invisible on the real Mac** (screenshot: open panel showed
   Now Playing, nothing in the strip beside the notch), so no other tool was
   reachable. The tabs now sit in a scrollable row inside the panel, below

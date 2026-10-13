@@ -48,6 +48,7 @@ jobs:
             CODE_SIGN_IDENTITY=- \
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM= \
+            ENABLE_HARDENED_RUNTIME=NO \
             build
 
       # Catch launch-blocking signing problems here rather than on someone's Mac.
@@ -55,6 +56,28 @@ jobs:
         run: |
           codesign --verify --deep --strict --verbose=2 build/Build/Products/Release/MacbookNotch.app
           codesign -d --entitlements - build/Build/Products/Release/MacbookNotch.app
+
+      # With the hardened runtime on, macOS only loads frameworks signed by
+      # the app's own team. GitHub's runners don't enforce this (SIP is off),
+      # so the launch check below can't catch it; a real Mac kills the app.
+      - name: Check embedded frameworks can load
+        run: |
+          app=build/Build/Products/Release/MacbookNotch.app
+          team() { codesign -dv "$1" 2>&1 | sed -n 's/^TeamIdentifier=//p'; }
+          app_team=$(team "$app")
+          hardened=no
+          codesign -dv "$app" 2>&1 | grep -q 'flags=.*runtime' && hardened=yes
+          echo "App: team '$app_team', hardened runtime: $hardened"
+          status=0
+          for fw in "$app"/Contents/Frameworks/*.framework; do
+            [ -e "$fw" ] || continue
+            echo "$(basename "$fw"): team '$(team "$fw")'"
+            if [ "$hardened" = yes ] && [ "$(team "$fw")" != "$app_team" ]; then
+              echo "::error::$(basename "$fw") is signed by a different team; the hardened runtime will refuse to load it."
+              status=1
+            fi
+          done
+          exit $status
 
       # Start the app and make sure it's still running after 10 seconds.
       - name: Launch check

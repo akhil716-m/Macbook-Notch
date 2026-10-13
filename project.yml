@@ -68,6 +68,9 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.macbooknotch.MacbookNotch
+        # Required for notarisation. Ad-hoc test builds turn it off on the
+        # command line (CI, scripts/build-and-run.sh): under it, macOS won't
+        # load Sparkle.framework into an app with no Developer ID team.
         ENABLE_HARDENED_RUNTIME: YES
         # Ad-hoc "Sign to Run Locally" by default. Set your team in Xcode to sign properly.
         CODE_SIGN_STYLE: Automatic
